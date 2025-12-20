@@ -140,7 +140,7 @@ export function About() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl lg:text-5xl">
+          <h2 className="font-display text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl lg:text-5xl">
             Why choose BoostCV?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base sm:text-lg text-zinc-600">
@@ -181,7 +181,7 @@ export function About() {
           className="mt-24"
         >
           <div className="text-center mb-12">
-            <h3 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
+            <h3 className="font-display text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
               Professional Templates
             </h3>
             <p className="mx-auto mt-3 max-w-xl text-base text-zinc-600">
@@ -220,15 +220,15 @@ export function About() {
         >
           <div className="grid gap-8 sm:grid-cols-3 text-center">
             <div>
-              <p className="text-4xl sm:text-5xl font-bold text-zinc-900">50K+</p>
+              <p className="text-4xl sm:text-5xl font-black text-zinc-900">50K+</p>
               <p className="mt-2 text-sm text-zinc-600">Resumes Created</p>
             </div>
             <div className="border-y sm:border-y-0 sm:border-x border-zinc-200 py-8 sm:py-0">
-              <p className="text-4xl sm:text-5xl font-bold text-zinc-900">89%</p>
+              <p className="text-4xl sm:text-5xl font-black text-zinc-900">89%</p>
               <p className="mt-2 text-sm text-zinc-600">Interview Rate</p>
             </div>
             <div>
-              <p className="text-4xl sm:text-5xl font-bold text-zinc-900">4.9★</p>
+              <p className="text-4xl sm:text-5xl font-black text-zinc-900">4.9★</p>
               <p className="mt-2 text-sm text-zinc-600">User Rating</p>
             </div>
           </div>

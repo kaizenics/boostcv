@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
-
 const navigation = {
   product: [
     { name: "Features", href: "#features" },
@@ -70,12 +68,7 @@ export function Footer() {
           <div className="grid gap-8 lg:grid-cols-5">
             {/* Brand Column */}
             <div className="lg:col-span-2">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-              >
+              <div>
                 <a href="#" className="text-2xl font-bold text-white">
                   BoostCV
                 </a>
@@ -95,16 +88,11 @@ export function Footer() {
                     </a>
                   ))}
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* Navigation Columns */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
+            <div>
               <h3 className="text-sm font-semibold text-white">Product</h3>
               <ul className="mt-4 space-y-3">
                 {navigation.product.map((item) => (
@@ -118,14 +106,9 @@ export function Footer() {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
+            <div>
               <h3 className="text-sm font-semibold text-white">Company</h3>
               <ul className="mt-4 space-y-3">
                 {navigation.company.map((item) => (
@@ -139,14 +122,9 @@ export function Footer() {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
+            <div>
               <h3 className="text-sm font-semibold text-white">Support</h3>
               <ul className="mt-4 space-y-3">
                 {navigation.support.map((item) => (
@@ -173,7 +151,7 @@ export function Footer() {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </div>
           </div>
         </div>
 
