@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Manrope, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 
@@ -9,7 +9,6 @@ const manrope = Manrope({
   display: "swap",
 });
 
-// Optional: Elegant serif for headings (uncomment if you want to use it)
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
@@ -18,7 +17,7 @@ const playfairDisplay = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "BoostCV",
-  description: "Boost your career with a job-winning resume in minutes",
+  description: "Create ATS-optimized, professionally designed resumes that land interviews. No credit card, no hidden fees—just free, forever.",
 };
 
 export default function RootLayout({

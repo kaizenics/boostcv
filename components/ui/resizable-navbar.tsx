@@ -8,7 +8,7 @@ import {
   useMotionValueEvent,
 } from "motion/react";
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 
 
 interface NavbarProps {

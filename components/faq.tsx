@@ -53,7 +53,7 @@ export function FAQ() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
+          <h2 className="font-display text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
             Frequently Asked Questions
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-zinc-600">

@@ -24,11 +24,10 @@ export function Hero() {
                             transition={{ delay: 0.3 }}
                             className="font-display text-3xl font-bold leading-[1.1] tracking-tight text-zinc-900 dark:text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
                         >
-                            Create your{" "}
+                            Professional resumes.{" "}
                             <span className="text-zinc-900 dark:text-white">
-                                job-winning
-                            </span>{" "}
-                            resume in minutes
+                                Completely free.
+                            </span>
                         </motion.h1>
 
                         {/* Subheading */}
@@ -38,7 +37,7 @@ export function Hero() {
                             transition={{ delay: 0.4 }}
                             className="mt-4 sm:mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-zinc-600 dark:text-zinc-400"
                         >
-                            The first step to a better job? A better resume. Get yours in just a few clicks.
+                            Create ATS-optimized, professionally designed resumes that land interviews. No credit card, no hidden fees—just free, forever.
                         </motion.p>
 
                         {/* CTA Buttons */}
