@@ -6,6 +6,8 @@ import * as z from "zod";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +29,10 @@ const signInSchema = z.object({
 type SignInFormValues = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
+  const router = useRouter();
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -37,9 +42,50 @@ export default function SignInPage() {
     },
   });
 
-  const onSubmit = (data: SignInFormValues) => {
-    console.log("Sign in data:", data);
-    // TODO: Implement sign in logic
+  const onSubmit = async (data: SignInFormValues) => {
+    setIsLoading(true);
+    setError(null);
+
+    const { error: signInError } = await authClient.signIn.email(
+      {
+        email: data.email,
+        password: data.password,
+        rememberMe,
+        callbackURL: "/",
+      },
+      {
+        onSuccess: () => {
+          router.push("/");
+          router.refresh();
+        },
+        onError: (ctx) => {
+          setError(ctx.error.message || "Failed to sign in. Please try again.");
+          setIsLoading(false);
+        },
+      }
+    );
+
+    if (signInError) {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError(null);
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",
+    });
+  };
+
+  const handleGitHubSignIn = async () => {
+    setIsLoading(true);
+    setError(null);
+    await authClient.signIn.social({
+      provider: "github",
+      callbackURL: "/",
+    });
   };
 
   return (
@@ -61,16 +107,21 @@ export default function SignInPage() {
             </p>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
           {/* OAuth Buttons */}
           <div className="mt-8 space-y-3">
             <Button
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => {
-                // TODO: Implement Google OAuth
-                console.log("Google sign in");
-              }}
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
             >
               <svg
                 className="mr-2 h-4 w-4"
@@ -89,10 +140,8 @@ export default function SignInPage() {
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => {
-                // TODO: Implement GitHub OAuth
-                console.log("GitHub sign in");
-              }}
+              onClick={handleGitHubSignIn}
+              disabled={isLoading}
             >
               <svg
                 className="mr-2 h-4 w-4"
@@ -180,8 +229,8 @@ export default function SignInPage() {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
-                Sign in
+              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </Form>
