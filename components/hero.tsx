@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { CheckCircle, Sparkles, Lightbulb } from "lucide-react";
+import Link from "next/link";
 import DisplayCards from "@/components/ui/display-cards";
 
 export function Hero() {
@@ -47,12 +47,16 @@ export function Hero() {
                             transition={{ delay: 0.5 }}
                             className="mt-8 sm:mt-10 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4"
                         >
+                            <Link href="/resume/templates">
                             <button className="inline-flex items-center justify-center rounded-xl bg-zinc-900 px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">
                                 Create New Resume
                             </button>
+                            </Link>
+                            <Link href="/resume/templates">
                             <button className="inline-flex items-center justify-center rounded-xl border-2 border-zinc-200 bg-white px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base font-semibold text-zinc-900 transition-all duration-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-transparent dark:text-zinc-100 dark:hover:bg-zinc-900">
                                 Improve My Resume
                             </button>
+                            </Link>
                         </motion.div>
 
                         {/* Stats */}

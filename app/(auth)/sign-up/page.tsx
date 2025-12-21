@@ -5,6 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
 import { motion } from "motion/react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +42,10 @@ const signUpSchema = z
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export default function SignUpPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -50,9 +57,50 @@ export default function SignUpPage() {
     },
   });
 
-  const onSubmit = (data: SignUpFormValues) => {
-    console.log("Sign up data:", data);
-    // TODO: Implement sign up logic
+  const onSubmit = async (data: SignUpFormValues) => {
+    setIsLoading(true);
+    setError(null);
+
+    const { error: signUpError } = await authClient.signUp.email(
+      {
+        email: data.email,
+        password: data.password,
+        name: `${data.firstName} ${data.lastName}`,
+        callbackURL: "/",
+      },
+      {
+        onSuccess: () => {
+          router.push("/");
+          router.refresh();
+        },
+        onError: (ctx) => {
+          setError(ctx.error.message || "Failed to create account. Please try again.");
+          setIsLoading(false);
+        },
+      }
+    );
+
+    if (signUpError) {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setIsLoading(true);
+    setError(null);
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",
+    });
+  };
+
+  const handleGitHubSignUp = async () => {
+    setIsLoading(true);
+    setError(null);
+    await authClient.signIn.social({
+      provider: "github",
+      callbackURL: "/",
+    });
   };
 
   return (
@@ -74,16 +122,21 @@ export default function SignUpPage() {
             </p>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
           {/* OAuth Buttons */}
           <div className="mt-8 space-y-3">
             <Button
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => {
-                // TODO: Implement Google OAuth
-                console.log("Google sign up");
-              }}
+              onClick={handleGoogleSignUp}
+              disabled={isLoading}
             >
               <svg
                 className="mr-2 h-4 w-4"
@@ -102,10 +155,8 @@ export default function SignUpPage() {
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => {
-                // TODO: Implement GitHub OAuth
-                console.log("GitHub sign up");
-              }}
+              onClick={handleGitHubSignUp}
+              disabled={isLoading}
             >
               <svg
                 className="mr-2 h-4 w-4"
@@ -227,8 +278,8 @@ export default function SignUpPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full" size="lg">
-                Create account
+              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                {isLoading ? "Creating account..." : "Create account"}
               </Button>
             </form>
           </Form>
