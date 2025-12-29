@@ -13,8 +13,10 @@ import {
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
+import { useAuth } from "@/components/auth-provider";
 
 export function NavbarComponent() {
+  const { session } = useAuth();
   const navItems = [
     {
       name: "About",
@@ -110,13 +112,23 @@ export function NavbarComponent() {
           </div>
           <div className="flex items-center gap-4">
             <NavbarButton variant="secondary">Contact</NavbarButton>
-            <NavbarButton
-              as={Link}
-              href="/sign-in"
-              variant="primary"
-            >
-              Login
-            </NavbarButton>
+            {session ? (
+              <NavbarButton
+                as={Link}
+                href="/dashboard"
+                variant="primary"
+              >
+                Dashboard
+              </NavbarButton>
+            ) : (
+              <NavbarButton
+                as={Link}
+                href="/sign-in"
+                variant="primary"
+              >
+                Login
+              </NavbarButton>
+            )}
           </div>
         </NavBody>
 
@@ -160,15 +172,27 @@ export function NavbarComponent() {
               }
             })}
             <div className="flex w-full flex-col gap-4">
-              <NavbarButton
-                as={Link}
-                href="/sign-in"
-                onClick={() => setIsMobileMenuOpen(false)}
-                variant="primary"
-                className="w-full"
-              >
-                Login
-              </NavbarButton>
+              {session ? (
+                <NavbarButton
+                  as={Link}
+                  href="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  variant="primary"
+                  className="w-full"
+                >
+                  Dashboard
+                </NavbarButton>
+              ) : (
+                <NavbarButton
+                  as={Link}
+                  href="/sign-in"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  variant="primary"
+                  className="w-full"
+                >
+                  Login
+                </NavbarButton>
+              )}
               <NavbarButton
                 onClick={() => setIsMobileMenuOpen(false)}
                 variant="primary"

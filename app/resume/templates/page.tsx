@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Star, Laptop, FileText, Image, Briefcase, Shield, LayoutGrid } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 const categories = [
   { id: "all", name: "All Templates", icon: LayoutGrid },
@@ -73,7 +75,7 @@ const templates = [
   },
 ];
 
-function ResumeTemplateCard({ template }: { template: typeof templates[0] }) {
+function ResumeTemplateCard({ template, onUseTemplate }: { template: typeof templates[0]; onUseTemplate: (templateId: string) => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -162,6 +164,18 @@ function ResumeTemplateCard({ template }: { template: typeof templates[0] }) {
           </div>
         </div>
 
+        {/* Hover Overlay with Use Template Button */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <Button 
+            onClick={() => onUseTemplate(template.id)}
+            className="transform scale-95 transition-transform duration-300 group-hover:scale-100"
+            size="lg"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Use this template
+          </Button>
+        </div>
+
         {/* Bottom bar */}
         <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between border-t border-zinc-100 bg-white/90 px-3 py-2 backdrop-blur-sm">
           {/* Color options */}
@@ -197,6 +211,13 @@ function ResumeTemplateCard({ template }: { template: typeof templates[0] }) {
 
 export default function ResumeTemplatesPage() {
   const [activeCategory, setActiveCategory] = useState("all");
+  const router = useRouter();
+
+  const handleUseTemplate = (templateId: string) => {
+    // Store the selected template in localStorage and navigate to section page
+    localStorage.setItem('selectedTemplateId', templateId);
+    router.push('/resume/section');
+  };
 
   const filteredTemplates = templates.filter((template) =>
     template.category.includes(activeCategory)
@@ -286,7 +307,11 @@ export default function ResumeTemplatesPage() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {filteredTemplates.map((template) => (
-            <ResumeTemplateCard key={template.id} template={template} />
+            <ResumeTemplateCard 
+              key={template.id} 
+              template={template} 
+              onUseTemplate={handleUseTemplate}
+            />
           ))}
         </div>
 
