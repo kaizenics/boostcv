@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Star, Laptop, FileText, Image, Briefcase, Shield, LayoutGrid } from "lucide-react";
+import { Star, Laptop, FileText, Briefcase, Shield, LayoutGrid, Image } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
@@ -12,70 +12,411 @@ const categories = [
   { id: "all", name: "All Templates", icon: LayoutGrid },
   { id: "simple", name: "Simple", icon: Star },
   { id: "modern", name: "Modern", icon: Laptop },
-  { id: "one-column", name: "One column", icon: FileText },
-  { id: "with-photo", name: "With photo", icon: Image },
   { id: "professional", name: "Professional", icon: Briefcase },
-  { id: "ats", name: "ATS", icon: Shield },
+  { id: "ats", name: "ATS Friendly", icon: Shield },
+  { id: "creative", name: "Creative", icon: Image },
 ];
+
+// Sample data for preview
+const sampleData = {
+  name: "Sarah Johnson",
+  title: "Senior Product Designer",
+  email: "sarah.j@email.com",
+  phone: "(555) 123-4567",
+  location: "San Francisco, CA",
+  summary: "Creative product designer with 8+ years of experience crafting user-centered digital experiences.",
+  experience: [
+    { title: "Senior Product Designer", company: "TechCorp Inc.", date: "2021 - Present" },
+    { title: "UI/UX Designer", company: "StartupXYZ", date: "2018 - 2021" },
+  ],
+  education: { degree: "B.A. in Design", school: "Stanford University", date: "2014 - 2018" },
+  skills: ["Figma", "React", "User Research", "Prototyping", "Design Systems"],
+};
 
 const templates = [
   {
     id: "celestial",
     name: "Celestial",
     description: "Soft neutral tones with refined typography for a sophisticated and professional feel.",
-    category: ["all", "simple", "professional"],
-    colors: ["#f5f5f5", "#1a1a1a", "#1e3a5f", "#2563eb", "#14b8a6"],
-    layout: "two-column",
-    hasPhoto: false,
+    category: ["all", "professional", "ats"],
+    primaryColor: "#1e3a5f",
+    layout: "classic",
   },
   {
     id: "galaxy",
     name: "Galaxy",
     description: "A visually striking resume template, perfect for illustrating the breadth and depth of your expertise.",
-    category: ["all", "modern", "one-column"],
-    colors: ["#f5f5f5", "#e0f2fe", "#bfdbfe", "#fef3c7", "#fde68a"],
-    layout: "one-column",
-    hasPhoto: false,
+    category: ["all", "modern"],
+    primaryColor: "#2563eb",
+    layout: "modern",
   },
   {
     id: "astral",
     name: "Astral",
     description: "Includes a prominent profile image for a personal touch while maintaining professionalism.",
-    category: ["all", "with-photo", "professional"],
-    colors: ["#e5e5e5", "#d4d4d4", "#a3a3a3", "#78716c", "#57534e"],
-    layout: "two-column",
-    hasPhoto: true,
+    category: ["all", "professional", "creative"],
+    primaryColor: "#57534e",
+    layout: "sidebar",
   },
   {
     id: "nova",
     name: "Nova",
     description: "Clean and minimal design optimized for ATS systems with maximum readability.",
     category: ["all", "simple", "ats"],
-    colors: ["#ffffff", "#f5f5f5", "#e5e5e5", "#d4d4d4", "#a3a3a3"],
-    layout: "one-column",
-    hasPhoto: false,
+    primaryColor: "#374151",
+    layout: "minimal",
   },
   {
     id: "orbit",
     name: "Orbit",
     description: "Modern layout with creative elements that stand out while remaining professional.",
-    category: ["all", "modern", "professional"],
-    colors: ["#fef2f2", "#fee2e2", "#fecaca", "#fca5a5", "#f87171"],
-    layout: "two-column",
-    hasPhoto: false,
+    category: ["all", "modern", "creative"],
+    primaryColor: "#dc2626",
+    layout: "bold",
   },
   {
     id: "stellar",
     name: "Stellar",
     description: "Bold typography and structured sections for maximum impact and clarity.",
-    category: ["all", "simple", "one-column", "ats"],
-    colors: ["#f0fdf4", "#dcfce7", "#bbf7d0", "#86efac", "#4ade80"],
-    layout: "one-column",
-    hasPhoto: false,
+    category: ["all", "simple", "ats"],
+    primaryColor: "#059669",
+    layout: "classic",
+  },
+  {
+    id: "aurora",
+    name: "Aurora",
+    description: "Elegant gradient accents with a modern sidebar layout for creative professionals.",
+    category: ["all", "modern", "creative"],
+    primaryColor: "#8b5cf6",
+    layout: "sidebar",
+  },
+  {
+    id: "zenith",
+    name: "Zenith",
+    description: "Minimalist design with strong visual hierarchy, perfect for executives and leaders.",
+    category: ["all", "professional"],
+    primaryColor: "#0891b2",
+    layout: "executive",
+  },
+  {
+    id: "pulse",
+    name: "Pulse",
+    description: "Dynamic and energetic layout ideal for marketing and creative roles.",
+    category: ["all", "modern", "creative"],
+    primaryColor: "#f97316",
+    layout: "modern",
+  },
+  {
+    id: "classic",
+    name: "Classic",
+    description: "Timeless traditional format trusted by hiring managers across all industries.",
+    category: ["all", "simple", "ats", "professional"],
+    primaryColor: "#1f2937",
+    layout: "classic",
+  },
+  {
+    id: "metro",
+    name: "Metro",
+    description: "Clean lines and organized sections inspired by modern urban design.",
+    category: ["all", "professional", "modern"],
+    primaryColor: "#0d9488",
+    layout: "minimal",
+  },
+  {
+    id: "bold",
+    name: "Bold",
+    description: "Statement-making design with strong typography for confident professionals.",
+    category: ["all", "modern", "creative"],
+    primaryColor: "#be185d",
+    layout: "bold",
+  },
+  {
+    id: "harvard",
+    name: "Harvard",
+    description: "The gold standard resume format used by Harvard Business School. Clean, professional, and universally accepted.",
+    category: ["all", "professional", "ats", "simple"],
+    primaryColor: "#1e1e1e",
+    layout: "harvard",
   },
 ];
 
 function ResumeTemplateCard({ template, onUseTemplate }: { template: typeof templates[0]; onUseTemplate: (templateId: string) => void }) {
+  const color = template.primaryColor;
+  
+  // Render different layouts based on template type
+  const renderPreviewContent = () => {
+    switch (template.layout) {
+      case "sidebar":
+        return (
+          <div className="flex h-full">
+            {/* Left Sidebar */}
+            <div className="w-[35%] p-2" style={{ backgroundColor: color }}>
+              <div className="h-8 w-8 mx-auto rounded-full bg-white/30 mb-2" />
+              <div className="text-center mb-3">
+                <p className="text-[6px] font-bold text-white truncate">{sampleData.name}</p>
+                <p className="text-[4px] text-white/80 truncate">{sampleData.title}</p>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-[4px] font-bold text-white/90 uppercase mb-1">Contact</p>
+                  <p className="text-[3px] text-white/70 truncate">{sampleData.email}</p>
+                  <p className="text-[3px] text-white/70">{sampleData.phone}</p>
+                </div>
+                <div>
+                  <p className="text-[4px] font-bold text-white/90 uppercase mb-1">Skills</p>
+                  <div className="space-y-0.5">
+                    {sampleData.skills.slice(0, 4).map((skill, i) => (
+                      <p key={i} className="text-[3px] text-white/70">{skill}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Right Content */}
+            <div className="flex-1 p-2 bg-white">
+              <div className="mb-2">
+                <p className="text-[4px] font-bold uppercase mb-1" style={{ color }}>Experience</p>
+                {sampleData.experience.map((exp, i) => (
+                  <div key={i} className="mb-1">
+                    <p className="text-[4px] font-semibold text-zinc-800">{exp.title}</p>
+                    <p className="text-[3px] text-zinc-500">{exp.company} • {exp.date}</p>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="text-[4px] font-bold uppercase mb-1" style={{ color }}>Education</p>
+                <p className="text-[4px] font-semibold text-zinc-800">{sampleData.education.degree}</p>
+                <p className="text-[3px] text-zinc-500">{sampleData.education.school}</p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case "modern":
+        return (
+          <div className="h-full bg-white p-3">
+            {/* Header with accent */}
+            <div className="mb-2 pb-2" style={{ borderBottom: `2px solid ${color}` }}>
+              <p className="text-[8px] font-bold text-zinc-800">{sampleData.name}</p>
+              <p className="text-[5px] font-medium" style={{ color }}>{sampleData.title}</p>
+              <div className="flex gap-2 mt-1">
+                <p className="text-[3px] text-zinc-500">{sampleData.email}</p>
+                <p className="text-[3px] text-zinc-500">{sampleData.phone}</p>
+              </div>
+            </div>
+            {/* Two column layout */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <p className="text-[4px] font-bold uppercase mb-1" style={{ color }}>Experience</p>
+                {sampleData.experience.map((exp, i) => (
+                  <div key={i} className="mb-1.5">
+                    <p className="text-[4px] font-semibold text-zinc-800">{exp.title}</p>
+                    <p className="text-[3px] text-zinc-600">{exp.company}</p>
+                    <p className="text-[3px] text-zinc-400">{exp.date}</p>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="text-[4px] font-bold uppercase mb-1" style={{ color }}>Skills</p>
+                <div className="flex flex-wrap gap-0.5">
+                  {sampleData.skills.map((skill, i) => (
+                    <span key={i} className="text-[3px] px-1 py-0.5 rounded" style={{ backgroundColor: `${color}15`, color }}>{skill}</span>
+                  ))}
+                </div>
+                <p className="text-[4px] font-bold uppercase mt-2 mb-1" style={{ color }}>Education</p>
+                <p className="text-[3px] font-semibold text-zinc-800">{sampleData.education.degree}</p>
+                <p className="text-[3px] text-zinc-500">{sampleData.education.school}</p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case "bold":
+        return (
+          <div className="h-full bg-white">
+            {/* Bold header */}
+            <div className="p-3 text-white" style={{ backgroundColor: color }}>
+              <p className="text-[9px] font-black uppercase tracking-wide">{sampleData.name}</p>
+              <p className="text-[5px] font-medium opacity-90">{sampleData.title}</p>
+            </div>
+            <div className="p-2">
+              <div className="flex gap-3 mb-2 text-[3px] text-zinc-500">
+                <span>{sampleData.email}</span>
+                <span>{sampleData.phone}</span>
+              </div>
+              <div className="mb-2">
+                <p className="text-[5px] font-black uppercase mb-1" style={{ color }}>Experience</p>
+                {sampleData.experience.map((exp, i) => (
+                  <div key={i} className="mb-1">
+                    <p className="text-[4px] font-bold text-zinc-800">{exp.title}</p>
+                    <p className="text-[3px] text-zinc-500">{exp.company} | {exp.date}</p>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="text-[5px] font-black uppercase mb-1" style={{ color }}>Skills</p>
+                <div className="flex flex-wrap gap-0.5">
+                  {sampleData.skills.slice(0, 4).map((skill, i) => (
+                    <span key={i} className="text-[3px] px-1 py-0.5 bg-zinc-100 rounded font-medium">{skill}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case "minimal":
+        return (
+          <div className="h-full bg-white p-3">
+            <div className="text-center mb-2">
+              <p className="text-[8px] font-semibold text-zinc-800">{sampleData.name}</p>
+              <p className="text-[4px] text-zinc-500">{sampleData.title}</p>
+              <div className="flex justify-center gap-2 mt-1 text-[3px] text-zinc-400">
+                <span>{sampleData.email}</span>
+                <span>•</span>
+                <span>{sampleData.phone}</span>
+              </div>
+            </div>
+            <div className="border-t border-zinc-200 pt-2 mb-2">
+              <p className="text-[4px] font-semibold text-zinc-700 uppercase tracking-wide mb-1">Experience</p>
+              {sampleData.experience.map((exp, i) => (
+                <div key={i} className="mb-1 flex justify-between">
+                  <div>
+                    <p className="text-[4px] font-medium text-zinc-800">{exp.title}</p>
+                    <p className="text-[3px] text-zinc-500">{exp.company}</p>
+                  </div>
+                  <p className="text-[3px] text-zinc-400">{exp.date}</p>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-zinc-200 pt-2">
+              <p className="text-[4px] font-semibold text-zinc-700 uppercase tracking-wide mb-1">Skills</p>
+              <p className="text-[3px] text-zinc-600">{sampleData.skills.join(" • ")}</p>
+            </div>
+          </div>
+        );
+      
+      case "executive":
+        return (
+          <div className="h-full bg-white p-3">
+            <div className="border-b-2 pb-2 mb-2" style={{ borderColor: color }}>
+              <p className="text-[9px] font-bold text-zinc-800 tracking-tight">{sampleData.name}</p>
+              <p className="text-[5px] font-medium text-zinc-600">{sampleData.title}</p>
+            </div>
+            <div className="flex gap-3 mb-2 text-[3px] text-zinc-500">
+              <span>{sampleData.location}</span>
+              <span>{sampleData.email}</span>
+              <span>{sampleData.phone}</span>
+            </div>
+            <div className="mb-2">
+              <p className="text-[3px] text-zinc-600 leading-relaxed">{sampleData.summary}</p>
+            </div>
+            <div className="mb-2">
+              <p className="text-[4px] font-bold uppercase mb-1" style={{ color }}>Professional Experience</p>
+              {sampleData.experience.map((exp, i) => (
+                <div key={i} className="mb-1">
+                  <div className="flex justify-between">
+                    <p className="text-[4px] font-semibold text-zinc-800">{exp.title}</p>
+                    <p className="text-[3px] text-zinc-500">{exp.date}</p>
+                  </div>
+                  <p className="text-[3px] text-zinc-600">{exp.company}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      
+      case "harvard":
+        return (
+          <div className="h-full bg-white p-3">
+            {/* Harvard Header - Name centered, contact below */}
+            <div className="text-center mb-2 pb-1 border-b border-zinc-900">
+              <p className="text-[10px] font-bold text-zinc-900 tracking-wide">{sampleData.name}</p>
+              <div className="flex justify-center gap-2 mt-0.5 text-[3px] text-zinc-600">
+                <span>{sampleData.location}</span>
+                <span>|</span>
+                <span>{sampleData.phone}</span>
+                <span>|</span>
+                <span>{sampleData.email}</span>
+              </div>
+            </div>
+            {/* Education Section - Harvard style puts education first */}
+            <div className="mb-2">
+              <p className="text-[4px] font-bold text-zinc-900 uppercase tracking-wider border-b border-zinc-300 pb-0.5 mb-1">Education</p>
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-[4px] font-bold text-zinc-800">{sampleData.education.school}</p>
+                  <p className="text-[3px] text-zinc-600 italic">{sampleData.education.degree}</p>
+                </div>
+                <p className="text-[3px] text-zinc-600">{sampleData.education.date}</p>
+              </div>
+            </div>
+            {/* Experience Section */}
+            <div className="mb-2">
+              <p className="text-[4px] font-bold text-zinc-900 uppercase tracking-wider border-b border-zinc-300 pb-0.5 mb-1">Experience</p>
+              {sampleData.experience.map((exp, i) => (
+                <div key={i} className="mb-1">
+                  <div className="flex justify-between">
+                    <p className="text-[4px] font-bold text-zinc-800">{exp.company}</p>
+                    <p className="text-[3px] text-zinc-600">{exp.date}</p>
+                  </div>
+                  <p className="text-[3px] text-zinc-600 italic">{exp.title}</p>
+                </div>
+              ))}
+            </div>
+            {/* Skills Section */}
+            <div>
+              <p className="text-[4px] font-bold text-zinc-900 uppercase tracking-wider border-b border-zinc-300 pb-0.5 mb-1">Additional</p>
+              <p className="text-[3px] text-zinc-600"><span className="font-semibold">Skills:</span> {sampleData.skills.join(", ")}</p>
+            </div>
+          </div>
+        );
+      
+      case "classic":
+      default:
+        return (
+          <div className="h-full bg-white p-3" style={{ borderTop: `3px solid ${color}` }}>
+            <div className="text-center mb-2">
+              <p className="text-[8px] font-bold uppercase tracking-wide" style={{ color }}>{sampleData.name}</p>
+              <p className="text-[4px] text-zinc-600">{sampleData.title}</p>
+              <div className="flex justify-center gap-2 mt-1 text-[3px] text-zinc-500">
+                <span>{sampleData.email}</span>
+                <span>|</span>
+                <span>{sampleData.phone}</span>
+                <span>|</span>
+                <span>{sampleData.location}</span>
+              </div>
+            </div>
+            <div className="mb-2">
+              <p className="text-[4px] font-bold uppercase border-b pb-0.5 mb-1" style={{ color, borderColor: color }}>Experience</p>
+              {sampleData.experience.map((exp, i) => (
+                <div key={i} className="mb-1">
+                  <div className="flex justify-between">
+                    <p className="text-[4px] font-semibold text-zinc-800">{exp.title}</p>
+                    <p className="text-[3px] text-zinc-500">{exp.date}</p>
+                  </div>
+                  <p className="text-[3px] text-zinc-600">{exp.company}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2">
+              <p className="text-[4px] font-bold uppercase border-b pb-0.5 mb-1" style={{ color, borderColor: color }}>Education</p>
+              <p className="text-[4px] font-semibold text-zinc-800">{sampleData.education.degree}</p>
+              <p className="text-[3px] text-zinc-600">{sampleData.education.school} • {sampleData.education.date}</p>
+            </div>
+            <div>
+              <p className="text-[4px] font-bold uppercase border-b pb-0.5 mb-1" style={{ color, borderColor: color }}>Skills</p>
+              <div className="flex flex-wrap gap-0.5">
+                {sampleData.skills.map((skill, i) => (
+                  <span key={i} className="text-[3px] px-1 py-0.5 bg-zinc-100 rounded">{skill}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -85,83 +426,9 @@ function ResumeTemplateCard({ template, onUseTemplate }: { template: typeof temp
     >
       {/* Template Preview Card */}
       <div className="relative aspect-3/4 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition-all duration-300 group-hover:shadow-xl group-hover:border-zinc-300">
-        {/* Resume Preview */}
-        <div className="absolute inset-0 p-4 sm:p-6">
-          {template.hasPhoto ? (
-            // With photo layout
-            <div className="flex gap-4">
-              <div className="h-16 w-16 rounded-lg bg-zinc-200" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 w-3/4 rounded bg-zinc-800" />
-                <div className="h-2 w-1/2 rounded bg-zinc-400" />
-                <div className="h-2 w-2/3 rounded bg-zinc-300" />
-              </div>
-            </div>
-          ) : (
-            // Standard layout
-            <div className="space-y-2">
-              <div className="h-4 w-2/3 rounded bg-zinc-800" />
-              <div className="h-2 w-1/2 rounded bg-zinc-400" />
-            </div>
-          )}
-
-          {/* Content sections */}
-          <div className={`mt-6 ${template.layout === "two-column" ? "grid grid-cols-3 gap-4" : "space-y-4"}`}>
-            {template.layout === "two-column" ? (
-              <>
-                {/* Left column */}
-                <div className="col-span-1 space-y-4">
-                  <div className="space-y-2">
-                    <div className="h-2 w-full rounded bg-zinc-200" />
-                    <div className="h-1.5 w-4/5 rounded bg-zinc-100" />
-                    <div className="h-1.5 w-3/5 rounded bg-zinc-100" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-2 w-full rounded bg-zinc-200" />
-                    <div className="h-1.5 w-full rounded bg-zinc-100" />
-                    <div className="h-1.5 w-4/5 rounded bg-zinc-100" />
-                  </div>
-                </div>
-                {/* Right column */}
-                <div className="col-span-2 space-y-4">
-                  <div className="space-y-2">
-                    <div className="h-2 w-1/3 rounded bg-zinc-300" />
-                    <div className="h-1.5 w-full rounded bg-zinc-100" />
-                    <div className="h-1.5 w-full rounded bg-zinc-100" />
-                    <div className="h-1.5 w-4/5 rounded bg-zinc-100" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-2 w-1/4 rounded bg-zinc-300" />
-                    <div className="h-1.5 w-full rounded bg-zinc-100" />
-                    <div className="h-1.5 w-5/6 rounded bg-zinc-100" />
-                    <div className="h-1.5 w-full rounded bg-zinc-100" />
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="space-y-2">
-                  <div className="h-2 w-1/4 rounded bg-zinc-300" />
-                  <div className="h-1.5 w-full rounded bg-zinc-100" />
-                  <div className="h-1.5 w-full rounded bg-zinc-100" />
-                  <div className="h-1.5 w-4/5 rounded bg-zinc-100" />
-                </div>
-                <div className="space-y-2">
-                  <div className="h-2 w-1/3 rounded bg-zinc-300" />
-                  <div className="h-1.5 w-full rounded bg-zinc-100" />
-                  <div className="h-1.5 w-5/6 rounded bg-zinc-100" />
-                </div>
-                <div className="space-y-2">
-                  <div className="h-2 w-1/4 rounded bg-zinc-300" />
-                  <div className="flex flex-wrap gap-1">
-                    <div className="h-3 w-10 rounded bg-zinc-100" />
-                    <div className="h-3 w-8 rounded bg-zinc-100" />
-                    <div className="h-3 w-12 rounded bg-zinc-100" />
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+        {/* Resume Preview with Sample Content */}
+        <div className="absolute inset-0">
+          {renderPreviewContent()}
         </div>
 
         {/* Hover Overlay with Use Template Button */}
@@ -176,27 +443,13 @@ function ResumeTemplateCard({ template, onUseTemplate }: { template: typeof temp
           </Button>
         </div>
 
-        {/* Bottom bar */}
-        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between border-t border-zinc-100 bg-white/90 px-3 py-2 backdrop-blur-sm">
-          {/* Color options */}
-          <div className="flex gap-1">
-            {template.colors.map((color, idx) => (
-              <button
-                key={idx}
-                className="h-5 w-5 rounded-full border border-zinc-200 transition-transform hover:scale-110"
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div>
-          {/* Download buttons */}
-          <div className="flex gap-1">
-            <button className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600 hover:bg-zinc-200">
-              PDF
-            </button>
-            <button className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600 hover:bg-zinc-200">
-              DOCX
-            </button>
-          </div>
+        {/* Template name badge */}
+        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between border-t border-zinc-100 bg-white/95 px-3 py-2 backdrop-blur-sm">
+          <span className="text-xs font-medium text-zinc-700">{template.name}</span>
+          <div 
+            className="h-4 w-4 rounded-full border border-zinc-200" 
+            style={{ backgroundColor: template.primaryColor }}
+          />
         </div>
       </div>
 

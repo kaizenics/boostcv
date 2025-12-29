@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { DownloadDialog } from '@/components/resume/download-dialog';
+import { ResumePreview, DesignOptions, defaultDesignOptions } from '@/components/resume/resume-preview';
 import { ResumeData, createEmptyResumeData } from '@/lib/types/resume';
 import { resumeTemplates } from '@/lib/resume-templates';
 import { cn } from '@/lib/utils';
@@ -22,34 +23,14 @@ import {
   Layers,
   Paintbrush,
   SpellCheck,
-  Download,
   MoreHorizontal,
   Check,
-  ChevronLeft,
-  ChevronRight,
   RotateCcw,
   Pencil,
 } from 'lucide-react';
 
 // Sidebar tab types
 type SidebarTab = 'templates' | 'sections' | 'design' | 'spellcheck';
-
-// Design options interface
-interface DesignOptions {
-  fontFamily: string;
-  fontSize: number;
-  sectionSpacing: number;
-  paragraphSpacing: number;
-  lineSpacing: number;
-}
-
-const defaultDesignOptions: DesignOptions = {
-  fontFamily: 'Inter, system-ui, sans-serif',
-  fontSize: 11,
-  sectionSpacing: 16,
-  paragraphSpacing: 8,
-  lineSpacing: 1.5,
-};
 
 const fontFamilies = [
   { name: 'Inter', value: 'Inter, system-ui, sans-serif' },
@@ -134,8 +115,6 @@ export default function FinalResumePage() {
     );
   }
 
-  const template = resumeTemplates.find((t) => t.id === resumeData.templateId) || resumeTemplates[0];
-
   // Get active sections based on filled data
   const getActiveSections = () => {
     const sections: { id: string; label: string; active: boolean }[] = [];
@@ -214,23 +193,9 @@ export default function FinalResumePage() {
     localStorage.setItem('selectedTemplateId', templateId);
   };
 
-  const handleColorChange = (color: string) => {
-    // For now, we'll store color preference but templates have fixed colors
-    // This could be extended to support custom colors per template
-  };
-
   const resetDesignOptions = () => {
     setDesignOptions(defaultDesignOptions);
   };
-
-  // Calculate pages
-  const hasSecondPageContent =
-    resumeData.finalize.references.length > 0 ||
-    resumeData.finalize.hobbies.length > 0 ||
-    resumeData.finalize.awards.length > 0 ||
-    resumeData.finalize.customSections.length > 0;
-
-  const totalPages = hasSecondPageContent ? 2 : 1;
 
   const sidebarTabs: { id: SidebarTab; label: string; icon: React.ReactNode }[] = [
     { id: 'templates', label: 'Templates', icon: <LayoutTemplate className="h-5 w-5" /> },
@@ -299,11 +264,8 @@ export default function FinalResumePage() {
                   {templateColors.map((color) => (
                     <button
                       key={color}
-                      onClick={() => handleColorChange(color)}
-                      className={cn(
-                        'w-8 h-8 rounded-full border-2 transition-transform hover:scale-110',
-                        template.primaryColor === color ? 'border-gray-800 ring-2 ring-offset-2 ring-gray-400' : 'border-transparent'
-                      )}
+                      onClick={() => {/* Color selection feature - for future enhancement */}}
+                      className="w-8 h-8 rounded-full border-2 border-transparent transition-transform hover:scale-110"
                       style={{ backgroundColor: color }}
                     />
                   ))}
@@ -607,374 +569,13 @@ export default function FinalResumePage() {
             </div>
 
             {/* Resume Preview */}
-            <div
-              className="bg-white shadow-xl rounded-lg overflow-hidden"
-              style={{ fontFamily: designOptions.fontFamily }}
-            >
-              {/* Page 1 */}
-              {currentPage === 1 && (
-                <div
-                  className="p-8"
-                  style={{
-                    borderTop: `4px solid ${template.primaryColor}`,
-                    fontSize: `${designOptions.fontSize}px`,
-                    lineHeight: designOptions.lineSpacing,
-                  }}
-                >
-                  {/* Header */}
-                  <div className="text-center" style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                    <h1
-                      className="text-2xl font-bold uppercase tracking-wide"
-                      style={{ color: template.primaryColor }}
-                    >
-                      {resumeData.contact.firstName || 'YOUR'} {resumeData.contact.lastName || 'NAME'}
-                    </h1>
-                    {resumeData.contact.desiredJobTitle && (
-                      <p className="text-gray-600 mt-1">{resumeData.contact.desiredJobTitle}</p>
-                    )}
-                    <div className="flex justify-center gap-4 mt-2 text-gray-500">
-                      {resumeData.contact.email && <span>{resumeData.contact.email}</span>}
-                      {resumeData.contact.phone && <span>{resumeData.contact.phone}</span>}
-                    </div>
-                  </div>
-
-                  {/* Summary */}
-                  {resumeData.summary && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        Summary
-                      </h2>
-                      <p className="text-gray-600">{resumeData.summary}</p>
-                    </div>
-                  )}
-
-                  {/* Experience */}
-                  {resumeData.experiences.length > 0 && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        Experience
-                      </h2>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
-                        {resumeData.experiences.map((exp) => (
-                          <div key={exp.id}>
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-semibold">
-                                  {exp.jobTitle || 'Job Title'}, {exp.employer || 'Company'}
-                                </p>
-                                <p className="text-gray-500">{exp.location}</p>
-                              </div>
-                              <p className="text-gray-500">
-                                {exp.startDate || 'Start'} – {exp.isCurrentJob ? 'Present' : (exp.endDate || 'End')}
-                              </p>
-                            </div>
-                            {exp.description && (
-                              <p className="text-gray-600 mt-1 whitespace-pre-line">{exp.description}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Education */}
-                  {resumeData.educations.length > 0 && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        Education
-                      </h2>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
-                        {resumeData.educations.map((edu) => (
-                          <div key={edu.id}>
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-semibold">{edu.degree || 'Degree'}</p>
-                                <p className="text-gray-500">
-                                  {edu.schoolName || 'School'}, {edu.location}
-                                </p>
-                              </div>
-                              <p className="text-gray-500">
-                                {edu.startDate || 'Start'} – {edu.endDate || 'End'}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Skills */}
-                  {resumeData.skills.length > 0 && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        Skills
-                      </h2>
-                      <div className="flex flex-wrap gap-2">
-                        {resumeData.skills.map((skill) => (
-                          <span
-                            key={skill.id}
-                            className="px-2 py-0.5 bg-gray-100 rounded"
-                          >
-                            {skill.name}
-                            {skill.showLevel && skill.level && (
-                              <span className="text-gray-500"> • {skill.level}</span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Languages */}
-                  {resumeData.finalize.languages.length > 0 && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        Languages
-                      </h2>
-                      <div className="flex flex-wrap gap-3">
-                        {resumeData.finalize.languages.map((lang) => (
-                          <span key={lang.id}>
-                            {lang.name} ({lang.proficiency})
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Certifications */}
-                  {resumeData.finalize.certifications.length > 0 && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        Certifications
-                      </h2>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        {resumeData.finalize.certifications.map((cert) => (
-                          <p key={cert.id}>
-                            {cert.name} – {cert.issuer} ({cert.date})
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Websites/Links */}
-                  {resumeData.finalize.websites.length > 0 && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        Links
-                      </h2>
-                      <div className="flex flex-wrap gap-4">
-                        {resumeData.finalize.websites.map((site) => (
-                          <span key={site.id} className="text-blue-600">
-                            {site.label}: {site.url}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Page 2 */}
-              {currentPage === 2 && hasSecondPageContent && (
-                <div
-                  className="p-8 min-h-[600px]"
-                  style={{
-                    borderTop: `4px solid ${template.primaryColor}`,
-                    fontSize: `${designOptions.fontSize}px`,
-                    lineHeight: designOptions.lineSpacing,
-                  }}
-                >
-                  {/* Header */}
-                  <div className="text-center" style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                    <h1
-                      className="text-2xl font-bold uppercase tracking-wide"
-                      style={{ color: template.primaryColor }}
-                    >
-                      {resumeData.contact.firstName || 'YOUR'} {resumeData.contact.lastName || 'NAME'}
-                    </h1>
-                    <p className="text-gray-500 mt-1">Page 2</p>
-                  </div>
-
-                  {/* Awards */}
-                  {resumeData.finalize.awards.length > 0 && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        Awards & Honors
-                      </h2>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        {resumeData.finalize.awards.map((award) => (
-                          <p key={award.id}>
-                            {award.title} – {award.issuer} ({award.date})
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* References */}
-                  {resumeData.finalize.references.length > 0 && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        References
-                      </h2>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
-                        {resumeData.finalize.references.map((ref) => (
-                          <div key={ref.id}>
-                            <p className="font-semibold">{ref.name}</p>
-                            <p className="text-gray-600">
-                              {ref.position}{ref.company ? `, ${ref.company}` : ''}
-                            </p>
-                            <p className="text-gray-500">
-                              {ref.email} {ref.phone && `| ${ref.phone}`}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Hobbies */}
-                  {resumeData.finalize.hobbies.length > 0 && (
-                    <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        Hobbies & Interests
-                      </h2>
-                      <div className="flex flex-wrap gap-2">
-                        {resumeData.finalize.hobbies.map((hobby) => (
-                          <span key={hobby.id} className="bg-gray-100 px-2 py-0.5 rounded">
-                            {hobby.name}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Custom Sections */}
-                  {resumeData.finalize.customSections.map((section) => (
-                    <div key={section.id} style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-                      <h2
-                        className="font-bold uppercase tracking-wide border-b pb-1"
-                        style={{
-                          color: template.primaryColor,
-                          borderColor: template.primaryColor,
-                          marginBottom: `${designOptions.paragraphSpacing}px`,
-                        }}
-                      >
-                        {section.sectionName}
-                      </h2>
-                      <p className="text-gray-600">{section.description}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Footer with Pagination */}
-              <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t text-sm text-gray-500">
-                <div className="flex items-center gap-1">
-                  <Check className="h-4 w-4 text-green-500" />
-                  <span>Saved</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {totalPages > 1 && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                        className="h-7 w-7"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <span className="font-medium">
-                        {currentPage} / {totalPages}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setCurrentPage(2)}
-                        disabled={currentPage === 2}
-                        className="h-7 w-7"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                  {totalPages === 1 && <span>1 / 1</span>}
-                </div>
-              </div>
-            </div>
+            <ResumePreview
+              data={resumeData}
+              designOptions={designOptions}
+              showScore={false}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </main>
       </div>
@@ -984,6 +585,7 @@ export default function FinalResumePage() {
         data={resumeData}
         isOpen={showDownloadDialog}
         onClose={() => setShowDownloadDialog(false)}
+        designOptions={designOptions}
       />
     </div>
   );
