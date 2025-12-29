@@ -263,7 +263,7 @@ export function FinalizeForm({ data, onChange }: FinalizeFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Finalize Your Resume</h2>
+        <h2 className="font-display text-3xl font-bold mb-2">Finalize Your Resume</h2>
         <p className="text-muted-foreground">
           Add optional sections to make your resume stand out. Include only what's relevant to your target role.
         </p>

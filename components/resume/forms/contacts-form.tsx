@@ -17,7 +17,7 @@ export function ContactsForm({ data, onChange }: ContactsFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Contact Information</h2>
+        <h2 className="font-display text-3xl font-bold mb-2">Contact Information</h2>
         <p className="text-muted-foreground">
           Let employers know how to reach you. This information will appear at the top of your resume.
         </p>

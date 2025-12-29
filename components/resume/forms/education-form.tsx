@@ -48,7 +48,7 @@ export function EducationForm({ data, onChange }: EducationFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Education</h2>
+        <h2 className="font-display text-3xl font-bold mb-2">Education</h2>
         <p className="text-muted-foreground">
           Add your educational background. List your highest degree first.
         </p>

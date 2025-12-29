@@ -50,7 +50,7 @@ export function ExperienceForm({ data, onChange }: ExperienceFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Work Experience</h2>
+        <h2 className="font-display text-3xl font-bold mb-2">Work Experience</h2>
         <p className="text-muted-foreground">
           List your work experience starting with the most recent position first.
         </p>

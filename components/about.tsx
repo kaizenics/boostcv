@@ -9,6 +9,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { templates, sampleResumeData } from "@/lib/data/templates";
+import { TemplatePreviewRenderer } from "@/components/resume/template-preview-renderer";
 
 const features = [
   {
@@ -33,86 +35,19 @@ const features = [
   },
 ];
 
-const resumeTemplates = [
-  {
-    name: "Modern Pro",
-    category: "Professional",
-    color: "bg-zinc-900",
-    accent: "bg-zinc-700",
-  },
-  {
-    name: "Clean Minimal",
-    category: "Minimalist",
-    color: "bg-white",
-    accent: "bg-zinc-200",
-  },
-  {
-    name: "Executive",
-    category: "Corporate",
-    color: "bg-zinc-800",
-    accent: "bg-zinc-600",
-  },
-  {
-    name: "Creative Edge",
-    category: "Creative",
-    color: "bg-zinc-100",
-    accent: "bg-zinc-400",
-  },
-  {
-    name: "Tech Forward",
-    category: "Technology",
-    color: "bg-zinc-950",
-    accent: "bg-zinc-700",
-  },
-  {
-    name: "Classic",
-    category: "Traditional",
-    color: "bg-white",
-    accent: "bg-zinc-300",
-  },
-];
+const sampleData = sampleResumeData;
 
-function ResumeTemplateCard({ template }: { template: typeof resumeTemplates[0] }) {
-  const isDark = template.color.includes("900") || template.color.includes("950") || template.color.includes("800");
-  
+function ResumeTemplateCard({ template }: { template: typeof templates[0] }) {
   return (
     <div className="group cursor-pointer">
-      <div className={`relative aspect-3/4 rounded-xl ${template.color} border border-zinc-200 shadow-lg overflow-hidden transition-all duration-300 group-hover:shadow-2xl group-hover:scale-[1.02]`}>
+      <div className="relative aspect-3/4 rounded-xl border border-zinc-200 shadow-lg overflow-hidden transition-all duration-300 group-hover:shadow-2xl group-hover:scale-[1.02] bg-white">
         {/* Resume Template Preview */}
-        <div className="absolute inset-0 p-4 sm:p-6">
-          {/* Header Section */}
-          <div className="flex items-start gap-3">
-            <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-lg ${template.accent}`} />
-            <div className="flex-1 space-y-2">
-              <div className={`h-3 w-3/4 rounded ${template.accent}`} />
-              <div className={`h-2 w-1/2 rounded ${template.accent} opacity-60`} />
-            </div>
-          </div>
-          
-          {/* Content Lines */}
-          <div className="mt-6 space-y-4">
-            <div className="space-y-2">
-              <div className={`h-2 w-1/3 rounded ${template.accent} opacity-80`} />
-              <div className={`h-1.5 w-full rounded ${template.accent} opacity-40`} />
-              <div className={`h-1.5 w-5/6 rounded ${template.accent} opacity-40`} />
-              <div className={`h-1.5 w-4/5 rounded ${template.accent} opacity-40`} />
-            </div>
-            
-            <div className="space-y-2">
-              <div className={`h-2 w-1/4 rounded ${template.accent} opacity-80`} />
-              <div className={`h-1.5 w-full rounded ${template.accent} opacity-40`} />
-              <div className={`h-1.5 w-3/4 rounded ${template.accent} opacity-40`} />
-            </div>
-            
-            <div className="space-y-2">
-              <div className={`h-2 w-1/3 rounded ${template.accent} opacity-80`} />
-              <div className="flex gap-1.5 flex-wrap">
-                <div className={`h-4 w-12 rounded ${template.accent} opacity-50`} />
-                <div className={`h-4 w-10 rounded ${template.accent} opacity-50`} />
-                <div className={`h-4 w-14 rounded ${template.accent} opacity-50`} />
-              </div>
-            </div>
-          </div>
+        <div className="absolute inset-0">
+          <TemplatePreviewRenderer 
+            layout={template.layout}
+            color={template.primaryColor}
+            sampleData={sampleData}
+          />
         </div>
         
         {/* Hover Overlay */}
@@ -122,7 +57,7 @@ function ResumeTemplateCard({ template }: { template: typeof resumeTemplates[0] 
       {/* Template Info */}
       <div className="mt-4 text-center">
         <h4 className="font-semibold text-zinc-900">{template.name}</h4>
-        <p className="text-sm text-zinc-500">{template.category}</p>
+        <p className="text-sm text-zinc-500">{template.description}</p>
       </div>
     </div>
   );
@@ -197,8 +132,8 @@ export function About() {
             className="w-full"
           >
             <CarouselContent className="-ml-4">
-              {resumeTemplates.map((template, index) => (
-                <CarouselItem key={index} className="pl-4 basis-1/2 sm:basis-1/3 lg:basis-1/4">
+              {templates.slice(0, 8).map((template) => (
+                <CarouselItem key={template.id} className="pl-4 basis-1/2 sm:basis-1/3 lg:basis-1/4">
                   <ResumeTemplateCard template={template} />
                 </CarouselItem>
               ))}
@@ -210,29 +145,6 @@ export function About() {
           </Carousel>
         </motion.div>
 
-        {/* Stats Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-24 rounded-2xl border border-zinc-200 bg-white p-8 sm:p-12"
-        >
-          <div className="grid gap-8 sm:grid-cols-3 text-center">
-            <div>
-              <p className="text-4xl sm:text-5xl font-black text-zinc-900">50K+</p>
-              <p className="mt-2 text-sm text-zinc-600">Resumes Created</p>
-            </div>
-            <div className="border-y sm:border-y-0 sm:border-x border-zinc-200 py-8 sm:py-0">
-              <p className="text-4xl sm:text-5xl font-black text-zinc-900">89%</p>
-              <p className="mt-2 text-sm text-zinc-600">Interview Rate</p>
-            </div>
-            <div>
-              <p className="text-4xl sm:text-5xl font-black text-zinc-900">4.9★</p>
-              <p className="mt-2 text-sm text-zinc-600">User Rating</p>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
