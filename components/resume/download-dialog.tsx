@@ -11,19 +11,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ResumeData } from '@/lib/types/resume';
+import { ResumeData, TemplateLayout } from '@/lib/types/resume';
 import { resumeTemplates } from '@/lib/resume-templates';
 import { Download, FileText, File, Loader2, Info } from 'lucide-react';
+import { DesignOptions, defaultDesignOptions } from './resume-preview';
 
 interface DownloadDialogProps {
   data: ResumeData;
   isOpen: boolean;
   onClose: () => void;
+  designOptions?: DesignOptions;
 }
 
 type DownloadFormat = 'pdf' | 'docx';
 
-export function DownloadDialog({ data, isOpen, onClose }: DownloadDialogProps) {
+export function DownloadDialog({ data, isOpen, onClose, designOptions = defaultDesignOptions }: DownloadDialogProps) {
   const [format, setFormat] = useState<DownloadFormat>('pdf');
   const [isDownloading, setIsDownloading] = useState(false);
   const [showPrintTip, setShowPrintTip] = useState(false);
@@ -38,9 +40,9 @@ export function DownloadDialog({ data, isOpen, onClose }: DownloadDialogProps) {
       // Generate and download the resume
       if (format === 'pdf') {
         setShowPrintTip(true);
-        await generatePDF(data, template, fileName);
+        await generatePDF(data, template, fileName, designOptions);
       } else {
-        await generateDOCX(data, template, fileName);
+        await generateDOCX(data, template, fileName, designOptions);
       }
     } catch (error) {
       console.error('Download failed:', error);
@@ -147,9 +149,9 @@ export function DownloadDialog({ data, isOpen, onClose }: DownloadDialogProps) {
 }
 
 // PDF Generation using browser print
-async function generatePDF(data: ResumeData, template: { primaryColor: string; name: string }, fileName: string) {
+async function generatePDF(data: ResumeData, template: { primaryColor: string; name: string }, fileName: string, designOptions: DesignOptions) {
   // Create a hidden iframe for printing
-  const printContent = generateResumeHTML(data, template);
+  const printContent = generateResumeHTML(data, template, designOptions);
   
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
@@ -170,8 +172,8 @@ async function generatePDF(data: ResumeData, template: { primaryColor: string; n
 }
 
 // DOCX Generation (creates a simple HTML file that Word can open)
-async function generateDOCX(data: ResumeData, template: { primaryColor: string; name: string }, fileName: string) {
-  const htmlContent = generateResumeHTML(data, template, true);
+async function generateDOCX(data: ResumeData, template: { primaryColor: string; name: string }, fileName: string, designOptions: DesignOptions) {
+  const htmlContent = generateResumeHTML(data, template, designOptions, true);
   
   const blob = new Blob([htmlContent], {
     type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -187,34 +189,139 @@ async function generateDOCX(data: ResumeData, template: { primaryColor: string; 
   URL.revokeObjectURL(url);
 }
 
-function generateResumeHTML(data: ResumeData, template: { primaryColor: string }, forWord = false): string {
+function generateResumeHTML(data: ResumeData, template: { primaryColor: string; layout?: TemplateLayout }, designOptions: DesignOptions, forWord = false): string {
+  const layout = template.layout || 'classic';
+  
+  // Get layout-specific styles
+  const getLayoutStyles = (): string => {
+    switch (layout) {
+      case 'harvard':
+        return `
+          .header { text-align: center; margin-bottom: ${designOptions.sectionSpacing}px; border-bottom: 1px solid #1e1e1e; padding-bottom: 15px; }
+          .name { font-size: 22pt; font-weight: bold; color: #1e1e1e; text-transform: uppercase; letter-spacing: 1px; }
+          .section-title { 
+            font-size: 11pt; 
+            font-weight: bold; 
+            color: #1e1e1e; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            border-bottom: 1px solid #1e1e1e; 
+            padding-bottom: 3px; 
+            margin-bottom: ${designOptions.paragraphSpacing}px; 
+          }
+          .entry-title { font-weight: bold; color: #1e1e1e; }
+          .entry-position { font-style: italic; }
+        `;
+      case 'modern':
+        return `
+          .header { text-align: left; margin-bottom: ${designOptions.sectionSpacing}px; border-bottom: 3px solid ${template.primaryColor}; padding-bottom: 15px; }
+          .name { font-size: 26pt; font-weight: bold; color: ${template.primaryColor}; }
+          .section-title { 
+            font-size: 12pt; 
+            font-weight: bold; 
+            color: ${template.primaryColor}; 
+            text-transform: uppercase; 
+            border-bottom: 2px solid ${template.primaryColor}; 
+            padding-bottom: 5px; 
+            margin-bottom: ${designOptions.paragraphSpacing}px; 
+          }
+        `;
+      case 'bold':
+        return `
+          .header { background: ${template.primaryColor}; color: white; padding: 30px; margin: -40px -40px 20px -40px; }
+          .name { font-size: 28pt; font-weight: bold; color: white; text-transform: uppercase; }
+          .title { color: rgba(255,255,255,0.8); }
+          .contact-info { color: rgba(255,255,255,0.7); }
+          .section-title { 
+            font-size: 12pt; 
+            font-weight: bold; 
+            color: white; 
+            text-transform: uppercase; 
+            background: ${template.primaryColor};
+            padding: 5px 10px;
+            margin-bottom: ${designOptions.paragraphSpacing}px; 
+          }
+          .entry { border-left: 4px solid ${template.primaryColor}; padding-left: 15px; }
+        `;
+      case 'minimal':
+        return `
+          .header { text-align: center; margin-bottom: ${designOptions.sectionSpacing}px; }
+          .name { font-size: 22pt; font-weight: 600; color: #333; }
+          .title { color: #666; }
+          .contact-info { color: #999; }
+          .section-title { 
+            font-size: 11pt; 
+            font-weight: 600; 
+            color: #333; 
+            text-transform: uppercase; 
+            border-bottom: 1px solid #ddd; 
+            padding-bottom: 5px; 
+            margin-bottom: ${designOptions.paragraphSpacing}px; 
+          }
+        `;
+      case 'executive':
+        return `
+          .header { margin-bottom: ${designOptions.sectionSpacing}px; border-bottom: 2px solid ${template.primaryColor}; padding-bottom: 15px; }
+          .name { font-size: 28pt; font-weight: bold; color: ${template.primaryColor}; }
+          .summary { border-left: 4px solid ${template.primaryColor}; padding-left: 15px; font-style: italic; }
+          .section-title { 
+            font-size: 12pt; 
+            font-weight: bold; 
+            color: ${template.primaryColor}; 
+            text-transform: uppercase; 
+            border-bottom: 2px solid ${template.primaryColor}; 
+            padding-bottom: 5px; 
+            margin-bottom: ${designOptions.paragraphSpacing}px; 
+          }
+        `;
+      case 'sidebar':
+        return `
+          .header { text-align: center; margin-bottom: ${designOptions.sectionSpacing}px; }
+          .name { font-size: 22pt; font-weight: bold; color: ${template.primaryColor}; }
+          .section-title { 
+            font-size: 12pt; 
+            font-weight: bold; 
+            color: ${template.primaryColor}; 
+            text-transform: uppercase; 
+            border-bottom: 2px solid ${template.primaryColor}; 
+            padding-bottom: 5px; 
+            margin-bottom: ${designOptions.paragraphSpacing}px; 
+          }
+        `;
+      case 'classic':
+      default:
+        return `
+          .header { text-align: center; margin-bottom: ${designOptions.sectionSpacing}px; border-top: 4px solid ${template.primaryColor}; padding-top: 20px; }
+          .name { font-size: 24pt; font-weight: bold; color: ${template.primaryColor}; text-transform: uppercase; letter-spacing: 2px; }
+          .section-title { 
+            font-size: 12pt; 
+            font-weight: bold; 
+            color: ${template.primaryColor}; 
+            text-transform: uppercase; 
+            border-bottom: 2px solid ${template.primaryColor}; 
+            padding-bottom: 5px; 
+            margin-bottom: ${designOptions.paragraphSpacing}px; 
+          }
+        `;
+    }
+  };
+
   const styles = `
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { 
-        font-family: Arial, sans-serif; 
-        font-size: 11pt; 
-        line-height: 1.4;
+        font-family: ${designOptions.fontFamily}; 
+        font-size: ${designOptions.fontSize}pt; 
+        line-height: ${designOptions.lineSpacing};
         color: #333;
         max-width: 800px;
         margin: 0 auto;
         padding: 40px;
       }
-      .header { text-align: center; margin-bottom: 20px; border-top: 4px solid ${template.primaryColor}; padding-top: 20px; }
-      .name { font-size: 24pt; font-weight: bold; color: ${template.primaryColor}; text-transform: uppercase; letter-spacing: 2px; }
       .title { font-size: 12pt; color: #666; margin-top: 5px; }
       .contact-info { font-size: 10pt; color: #666; margin-top: 10px; }
-      .section { margin-bottom: 15px; page-break-inside: avoid; }
-      .section-title { 
-        font-size: 12pt; 
-        font-weight: bold; 
-        color: ${template.primaryColor}; 
-        text-transform: uppercase; 
-        border-bottom: 2px solid ${template.primaryColor}; 
-        padding-bottom: 5px; 
-        margin-bottom: 10px; 
-      }
-      .entry { margin-bottom: 10px; page-break-inside: avoid; }
+      .section { margin-bottom: ${designOptions.sectionSpacing}px; page-break-inside: avoid; }
+      .entry { margin-bottom: ${designOptions.paragraphSpacing}px; page-break-inside: avoid; }
       .entry-header { display: flex; justify-content: space-between; }
       .entry-title { font-weight: bold; }
       .entry-date { color: #666; font-size: 10pt; }
@@ -224,17 +331,16 @@ function generateResumeHTML(data: ResumeData, template: { primaryColor: string }
       .skill-tag { background: #f0f0f0; padding: 3px 10px; border-radius: 3px; font-size: 10pt; }
       .summary { font-size: 10pt; color: #444; }
       .page-break { page-break-before: always; }
+      ${getLayoutStyles()}
       @media print {
         body { padding: 20px; }
         @page { 
           margin: 0.5in; 
           size: letter;
         }
-        /* Remove browser print headers and footers */
         @page { margin-top: 0.5in; margin-bottom: 0.5in; }
         html, body { height: 100%; width: 100%; }
       }
-      /* Additional print rules to remove headers/footers */
       @page { 
         margin-header: 0mm;
         margin-footer: 0mm;
@@ -242,12 +348,18 @@ function generateResumeHTML(data: ResumeData, template: { primaryColor: string }
     </style>
   `;
 
+  // Harvard layout puts education first
+  const isHarvard = layout === 'harvard';
+
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
       <title>${data.contact.firstName} ${data.contact.lastName} - Resume</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700&family=Poppins:wght@400;600;700&family=Source+Sans+Pro:wght@400;600;700&family=Nunito:wght@400;600;700&family=Raleway:wght@400;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
       ${styles}
     </head>
     <body>
@@ -259,10 +371,27 @@ function generateResumeHTML(data: ResumeData, template: { primaryColor: string }
         </div>
       </div>
 
-      ${data.summary ? `
+      ${!isHarvard && data.summary ? `
         <div class="section">
           <div class="section-title">Professional Summary</div>
           <div class="summary">${data.summary}</div>
+        </div>
+      ` : ''}
+
+      ${isHarvard && data.educations.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Education</div>
+          ${data.educations.map(edu => `
+            <div class="entry">
+              <div class="entry-header">
+                <span class="entry-title">${edu.schoolName}</span>
+                <span class="entry-date">${edu.startDate} - ${edu.endDate}</span>
+              </div>
+              <div class="entry-position">${edu.degree}</div>
+              ${edu.location ? `<div class="entry-subtitle">${edu.location}</div>` : ''}
+              ${edu.description ? `<div class="entry-description">${edu.description}</div>` : ''}
+            </div>
+          `).join('')}
         </div>
       ` : ''}
 
@@ -272,9 +401,10 @@ function generateResumeHTML(data: ResumeData, template: { primaryColor: string }
           ${data.experiences.map(exp => `
             <div class="entry">
               <div class="entry-header">
-                <span class="entry-title">${exp.jobTitle}${exp.employer ? `, ${exp.employer}` : ''}</span>
+                <span class="entry-title">${isHarvard ? exp.employer : exp.jobTitle}${!isHarvard && exp.employer ? `, ${exp.employer}` : ''}</span>
                 <span class="entry-date">${exp.startDate} - ${exp.isCurrentJob ? 'Present' : exp.endDate}</span>
               </div>
+              ${isHarvard ? `<div class="entry-position">${exp.jobTitle}</div>` : ''}
               ${exp.location ? `<div class="entry-subtitle">${exp.location}</div>` : ''}
               ${exp.description ? `<div class="entry-description">${exp.description}</div>` : ''}
             </div>
@@ -282,7 +412,7 @@ function generateResumeHTML(data: ResumeData, template: { primaryColor: string }
         </div>
       ` : ''}
 
-      ${data.educations.length > 0 ? `
+      ${!isHarvard && data.educations.length > 0 ? `
         <div class="section">
           <div class="section-title">Education</div>
           ${data.educations.map(edu => `
@@ -300,12 +430,16 @@ function generateResumeHTML(data: ResumeData, template: { primaryColor: string }
 
       ${data.skills.length > 0 ? `
         <div class="section">
-          <div class="section-title">Skills</div>
-          <div class="skills-list">
-            ${data.skills.map(skill => `
-              <span class="skill-tag">${skill.name}${skill.showLevel ? ` (${skill.level})` : ''}</span>
-            `).join('')}
-          </div>
+          <div class="section-title">${isHarvard ? 'Skills & Interests' : 'Skills'}</div>
+          ${isHarvard ? `
+            <div>${data.skills.map(skill => skill.name).join(', ')}</div>
+          ` : `
+            <div class="skills-list">
+              ${data.skills.map(skill => `
+                <span class="skill-tag">${skill.name}${skill.showLevel ? ` (${skill.level})` : ''}</span>
+              `).join('')}
+            </div>
+          `}
         </div>
       ` : ''}
 

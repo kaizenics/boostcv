@@ -102,6 +102,8 @@ export interface ResumeData {
   finalize: FinalizeOptions;
 }
 
+export type TemplateLayout = 'classic' | 'modern' | 'sidebar' | 'bold' | 'minimal' | 'executive' | 'harvard';
+
 export interface ResumeTemplate {
   id: string;
   name: string;
@@ -109,6 +111,7 @@ export interface ResumeTemplate {
   thumbnail: string;
   primaryColor: string;
   category: 'professional' | 'creative' | 'modern' | 'simple';
+  layout: TemplateLayout;
 }
 
 export type ResumeStep = 'contacts' | 'experience' | 'education' | 'skills' | 'summary' | 'finalize';
