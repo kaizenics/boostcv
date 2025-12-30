@@ -15,7 +15,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { DownloadDialog } from '@/components/resume/download-dialog';
 import { ResumePreview, DesignOptions, defaultDesignOptions } from '@/components/resume/resume-preview';
-import { ResumeData, createEmptyResumeData } from '@/lib/types/resume';
+import { ResumeData } from '@/lib/types/resume';
 import { resumeTemplates } from '@/lib/resume-templates';
 import { cn } from '@/lib/utils';
 import {
@@ -207,7 +207,7 @@ export default function FinalResumePage() {
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="border-b bg-background px-6 py-3 flex items-center justify-between flex-shrink-0">
+      <header className="border-b bg-background px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">BoostCV</span>
         </div>
@@ -232,31 +232,31 @@ export default function FinalResumePage() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-20 border-r bg-muted/30 flex flex-col items-center py-4 gap-2">
+        <aside className="w-28 border-r bg-muted/30 flex flex-col items-center py-4 gap-2">
           {sidebarTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex flex-col items-center gap-1 p-3 rounded-lg transition-colors w-16 text-center',
+                'flex flex-col items-center gap-1 p-4 rounded-lg transition-colors w-24 text-center',
                 activeTab === tab.id
                   ? 'text-zinc-900 bg-zinc-100 dark:text-zinc-100 dark:bg-zinc-800'
                   : 'text-muted-foreground hover:bg-accent'
               )}
             >
               {tab.icon}
-              <span className="text-[10px] leading-tight">{tab.label}</span>
+              <span className="text-sm leading-tight">{tab.label}</span>
             </button>
           ))}
         </aside>
 
         {/* Sidebar Content Panel */}
-        <div className="w-80 border-r bg-background flex flex-col">
+        <div className="w-1/3 border-r bg-background flex flex-col">
           <div className="p-4 overflow-y-auto flex-1">
             {/* Templates Tab */}
             {activeTab === 'templates' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold">Templates</h2>
+                <h2 className="font-display text-2xl font-bold">Templates</h2>
                 <div className="border-b pb-4" />
 
                 {/* Color Options */}
@@ -317,7 +317,7 @@ export default function FinalResumePage() {
             {/* Sections Tab */}
             {activeTab === 'sections' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold">Sections</h2>
+                <h2 className="font-display text-2xl font-bold">Sections</h2>
                 <p className="text-sm text-muted-foreground">
                   These are the sections included in your resume based on the information you provided.
                 </p>
@@ -351,7 +351,7 @@ export default function FinalResumePage() {
             {activeTab === 'design' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold">Design & Formatting</h2>
+                  <h2 className="font-display text-2xl font-bold">Design & Formatting</h2>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -527,7 +527,7 @@ export default function FinalResumePage() {
             {/* Spell Check Tab */}
             {activeTab === 'spellcheck' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold">Spell Check</h2>
+                <h2 className="font-display text-2xl font-bold">Spell Check</h2>
                 <div className="border-b pb-4" />
                 <div className="text-center py-8">
                   <SpellCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

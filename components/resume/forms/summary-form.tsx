@@ -18,7 +18,7 @@ export function SummaryForm({ data, onChange }: SummaryFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Professional Summary</h2>
+        <h2 className="font-display text-3xl font-bold mb-2">Professional Summary</h2>
         <p className="text-muted-foreground">
           Write a short introduction that highlights your experience, key skills, and career goals.
           This is often the first thing recruiters read.

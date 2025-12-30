@@ -46,7 +46,7 @@ export function SkillsForm({ data, onChange }: SkillsFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Skills</h2>
+        <h2 className="font-display text-3xl font-bold mb-2">Skills</h2>
         <p className="text-muted-foreground">
           Add your professional skills. Include both technical and soft skills relevant to your target role.
         </p>
