@@ -1,11 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { StepIndicator } from '@/components/resume/step-indicator';
-import { ResumePreview } from '@/components/resume/resume-preview';
-import { DownloadDialog } from '@/components/resume/download-dialog';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { StepIndicator } from "@/components/resume/step-indicator";
+import { ResumePreview } from "@/components/resume/resume-preview";
+import { DownloadDialog } from "@/components/resume/download-dialog";
 import {
   ContactsForm,
   ExperienceForm,
@@ -13,44 +21,45 @@ import {
   SkillsForm,
   SummaryForm,
   FinalizeForm,
-} from '@/components/resume/forms';
+} from "@/components/resume/forms";
 import {
   ResumeData,
   ResumeStep,
   RESUME_STEPS,
   createEmptyResumeData,
-} from '@/lib/types/resume';
-import { resumeTemplates } from '@/lib/resume-templates';
-import { ArrowLeft, ArrowRight, Download, Eye, EyeOff } from 'lucide-react';
+} from "@/lib/types/resume";
+import { resumeTemplates } from "@/lib/resume-templates";
+import { ArrowLeft, ArrowRight, Download, Eye, EyeOff } from "lucide-react";
 
 export default function ResumeSectionPage() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState<ResumeStep>('contacts');
+  const [currentStep, setCurrentStep] = useState<ResumeStep>("contacts");
   const [completedSteps, setCompletedSteps] = useState<ResumeStep[]>([]);
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   useEffect(() => {
     // Get the selected template from localStorage
-    const templateId = localStorage.getItem('selectedTemplateId');
-    
+    const templateId = localStorage.getItem("selectedTemplateId");
+
     if (!templateId) {
       // No template selected, redirect to templates page
-      router.push('/resume/templates');
+      router.push("/resume/templates");
       return;
     }
 
     // Check if template exists
     const template = resumeTemplates.find((t) => t.id === templateId);
     if (!template) {
-      router.push('/resume/templates');
+      router.push("/resume/templates");
       return;
     }
 
     // Check if there's existing resume data in localStorage
-    const savedData = localStorage.getItem('resumeData');
+    const savedData = localStorage.getItem("resumeData");
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
@@ -72,7 +81,7 @@ export default function ResumeSectionPage() {
   // Auto-save to localStorage
   useEffect(() => {
     if (resumeData) {
-      localStorage.setItem('resumeData', JSON.stringify(resumeData));
+      localStorage.setItem("resumeData", JSON.stringify(resumeData));
     }
   }, [resumeData]);
 
@@ -113,42 +122,46 @@ export default function ResumeSectionPage() {
 
   const renderCurrentForm = () => {
     switch (currentStep) {
-      case 'contacts':
+      case "contacts":
         return (
           <ContactsForm
             data={resumeData.contact}
             onChange={(contact) => setResumeData({ ...resumeData, contact })}
           />
         );
-      case 'experience':
+      case "experience":
         return (
           <ExperienceForm
             data={resumeData.experiences}
-            onChange={(experiences) => setResumeData({ ...resumeData, experiences })}
+            onChange={(experiences) =>
+              setResumeData({ ...resumeData, experiences })
+            }
           />
         );
-      case 'education':
+      case "education":
         return (
           <EducationForm
             data={resumeData.educations}
-            onChange={(educations) => setResumeData({ ...resumeData, educations })}
+            onChange={(educations) =>
+              setResumeData({ ...resumeData, educations })
+            }
           />
         );
-      case 'skills':
+      case "skills":
         return (
           <SkillsForm
             data={resumeData.skills}
             onChange={(skills) => setResumeData({ ...resumeData, skills })}
           />
         );
-      case 'summary':
+      case "summary":
         return (
           <SummaryForm
             data={resumeData.summary}
             onChange={(summary) => setResumeData({ ...resumeData, summary })}
           />
         );
-      case 'finalize':
+      case "finalize":
         return (
           <FinalizeForm
             data={resumeData.finalize}
@@ -162,77 +175,119 @@ export default function ResumeSectionPage() {
 
   const getNextButtonLabel = () => {
     if (isLastStep) {
-      return 'Download Resume';
+      return "Download Resume";
     }
     return `${RESUME_STEPS[currentStepIndex + 1].label}`;
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Main Content */}
-      <div className="px-4 py-6">
-        <div className="flex gap-6">
-          {/* Form Section with Header and Navigation */}
-          <div className={`flex-1 ${showPreview ? 'lg:max-w-[55%]' : ''} pb-24`}>
-            {/* Step Indicator - Form Section Only */}
-            <div className="bg-background border rounded-lg shadow-sm mb-4 p-4">
-              <StepIndicator
-                currentStep={currentStep}
-                completedSteps={completedSteps}
-                onStepClick={handleStepClick}
-              />
-            </div>
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex flex-col lg:flex-row w-full h-full">
+          <div className={`${showPreview ? "lg:w-1/2" : "w-full"} flex flex-col h-full overflow-auto`}>
+            {/* Form Section with Header and Navigation */}
+            <div className="flex-1 pb-20 sm:pb-24 px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
 
-            {/* Form Content */}
-            <div className="bg-background rounded-lg border p-6 mb-4">
-              {renderCurrentForm()}
-            </div>
+              {/* Step Indicator - Form Section Only */}
+              <div className="bg-background border rounded-lg shadow-sm mb-4 p-3 sm:p-4">
+                <StepIndicator
+                  currentStep={currentStep}
+                  completedSteps={completedSteps}
+                  onStepClick={handleStepClick}
+                />
+              </div>
 
-            {/* Bottom Navigation - Fixed at Bottom of Form Section */}
-            <div className={`fixed bottom-0 left-0 bg-background p-4 z-30 ${showPreview ? 'lg:w-[calc(55%-1.5rem)]' : 'w-full'}`}>
-              <div className="flex items-center justify-between px-4">
-                <Button
-                  variant="outline"
-                  onClick={goToPreviousStep}
-                  disabled={isFirstStep}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
+              {/* Form Content */}
+              <div className="bg-background rounded-lg border p-4 sm:p-6 mb-4">
+                {renderCurrentForm()}
+              </div>
 
-                <div className="flex items-center gap-2">
-                  {/* Toggle Preview Button */}
+              {/* Bottom Navigation - Fixed at Bottom of Form Section */}
+              <div 
+                className={`fixed bottom-0 left-0 bg-background border-t p-3 sm:p-4 z-30 ${
+                  showPreview ? 'lg:w-1/2 w-full' : 'w-full'
+                }`}
+              >
+                <div className="flex items-center justify-between px-2 sm:px-4">
                   <Button
-                    variant="ghost"
+                    variant="outline"
+                    onClick={goToPreviousStep}
+                    disabled={isFirstStep}
                     size="sm"
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="hidden lg:flex"
+                    className="sm:size-default"
                   >
-                    {showPreview ? (
-                      <>
-                        <EyeOff className="mr-2 h-4 w-4" />
-                        Hide Preview
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Show Preview
-                      </>
-                    )}
+                    <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Back</span>
                   </Button>
 
-                  {/* Next/Download Button */}
-                  {isLastStep ? (
-                    <Button onClick={() => router.push('/resume/final-resume')}>
-                      <Download className="mr-2 h-4 w-4" />
-                      Download Resume
+                  <div className="flex items-center gap-2">
+                    {/* Mobile View Resume Button */}
+                    <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+                      <SheetTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="lg:hidden"
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Resume
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="bottom" className="h-[90vh]">
+                        <SheetHeader>
+                          <SheetTitle>Resume Preview</SheetTitle>
+                          <SheetDescription>
+                            Preview your resume in real-time
+                          </SheetDescription>
+                        </SheetHeader>
+                        <div className="mt-4 h-[calc(90vh-100px)] overflow-auto">
+                          <ResumePreview
+                            data={resumeData}
+                            className="shadow-none"
+                          />
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+
+                    {/* Toggle Preview Button - Desktop Only */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowPreview(!showPreview)}
+                      className="hidden lg:flex"
+                    >
+                      {showPreview ? (
+                        <>
+                          <EyeOff className="mr-2 h-4 w-4" />
+                          Hide Preview
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Show Preview
+                        </>
+                      )}
                     </Button>
-                  ) : (
-                    <Button onClick={goToNextStep}>
-                      {getNextButtonLabel()}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  )}
+
+                    {/* Next/Download Button */}
+                    {isLastStep ? (
+                      <Button
+                        onClick={() => router.push("/resume/final-resume")}
+                        size="sm"
+                        className="sm:size-default"
+                      >
+                        <Download className="mr-1 sm:mr-2 h-4 w-4" />
+                        <span className="hidden sm:inline">Download</span>
+                      </Button>
+                    ) : (
+                      <Button onClick={goToNextStep} size="sm" className="sm:size-default">
+                        <span className="hidden sm:inline">{getNextButtonLabel()}</span>
+                        <span className="sm:hidden">Next</span>
+                        <ArrowRight className="ml-1 sm:ml-2 h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -240,8 +295,11 @@ export default function ResumeSectionPage() {
 
           {/* Preview Section - Independent */}
           {showPreview && (
-            <div className="hidden lg:block lg:w-[45%] sticky top-6 self-start">
-              <ResumePreview data={resumeData} className="max-h-[calc(100vh-48px)] overflow-auto" />
+            <div className="hidden lg:block lg:w-1/2 h-full overflow-auto py-6 px-8 bg-zinc-50 dark:bg-zinc-900">
+              <ResumePreview
+                data={resumeData}
+                className="h-full"
+              />
             </div>
           )}
         </div>
