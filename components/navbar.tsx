@@ -198,7 +198,7 @@ export function NavbarComponent() {
                 variant="primary"
                 className="w-full"
               >
-                Book a call
+                Contact
               </NavbarButton>
             </div>
           </MobileNavMenu>

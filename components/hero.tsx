@@ -6,9 +6,8 @@ import DisplayCards from "@/components/ui/display-cards";
 
 export function Hero() {
     return (
-        <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white dark:bg-zinc-950">
-
-            <div className="relative mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+        <section className="relative flex min-h-250 md:min-h-screen items-center justify-center overflow-hidden bg-white dark:bg-zinc-950">
+            <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
                 <div className="grid gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-8 lg:items-center">
                     {/* Left Column - Content */}
                     <motion.div
@@ -22,7 +21,7 @@ export function Hero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="font-display text-3xl font-bold leading-[1.1] tracking-tight text-zinc-900 dark:text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
+                            className="font-display text-3xl font-bold leading-[1.1] tracking-tight text-zinc-900 dark:text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl "
                         >
                             Professional resumes.{" "}
                             <span className="text-zinc-900 dark:text-white">
@@ -37,7 +36,7 @@ export function Hero() {
                             transition={{ delay: 0.4 }}
                             className="mt-4 sm:mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-zinc-600 dark:text-zinc-400"
                         >
-                            Create ATS-optimized, professionally designed resumes that land interviews. No credit card, no hidden fees—just free, forever.
+                            Build professional resumes that get you noticed by hiring managers. Simple, powerful tools to accelerate your career success.
                         </motion.p>
 
                         {/* CTA Buttons */}

@@ -47,7 +47,7 @@ function ResumeTemplateCard({ template, onUseTemplate }: { template: typeof temp
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           <Button 
             onClick={() => onUseTemplate(template.id)}
-            className="transform scale-95 transition-transform duration-300 group-hover:scale-100"
+            className="transform scale-95 transition-transform duration-300 group-hover:scale-100 cursor-pointer"
             size="lg"
           >
             <FileText className="mr-2 h-4 w-4" />
@@ -81,6 +81,12 @@ export default function ResumeTemplatesPage() {
   const handleUseTemplate = (templateId: string) => {
     // Store the selected template in localStorage and navigate to section page
     localStorage.setItem('selectedTemplateId', templateId);
+    router.push('/resume/section');
+  };
+
+  const handleChooseLater = () => {
+    // Set default Celestial template and navigate to section page
+    localStorage.setItem('selectedTemplateId', 'celestial');
     router.push('/resume/section');
   };
 
@@ -138,12 +144,12 @@ export default function ResumeTemplatesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Link
-            href="/"
-            className="mt-2 inline-block text-sm font-medium text-sky-500 hover:text-sky-600 hover:underline"
+          <button
+            onClick={handleChooseLater}
+            className="mt-2 inline-block text-sm font-medium text-sky-500 hover:text-sky-600 hover:underline cursor-pointer"
           >
             Choose later
-          </Link>
+          </button>
         </motion.div>
       </div>
 
