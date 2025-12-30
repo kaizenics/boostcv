@@ -71,7 +71,7 @@ function ResumeCard({
           <p className="text-xs lg:text-sm font-medium text-zinc-800 dark:text-zinc-200">{experience}</p>
           <p className="text-[10px] lg:text-xs text-zinc-500 dark:text-zinc-400">{company}</p>
         </div>
-        <div className="mt-2 space-y-1">
+        <div className="hidden md:block mt-2 space-y-1">
           <div className="h-1.5 w-full rounded bg-zinc-100 dark:bg-zinc-800" />
           <div className="h-1.5 w-4/5 rounded bg-zinc-100 dark:bg-zinc-800" />
           <div className="h-1.5 w-full rounded bg-zinc-100 dark:bg-zinc-800" />

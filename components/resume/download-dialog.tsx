@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Dialog,
@@ -13,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { ResumeData, TemplateLayout } from '@/lib/types/resume';
 import { resumeTemplates } from '@/lib/resume-templates';
-import { Download, FileText, File, Loader2, Info } from 'lucide-react';
+import { Download, FileText, File, Info } from 'lucide-react';
 import { DesignOptions, defaultDesignOptions } from './resume-preview';
 
 interface DownloadDialogProps {
@@ -131,7 +132,7 @@ export function DownloadDialog({ data, isOpen, onClose, designOptions = defaultD
             <Button onClick={handleDownload} disabled={isDownloading} className="flex-1">
               {isDownloading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Spinner className="mr-2 h-4 w-4" />
                   Downloading...
                 </>
               ) : (

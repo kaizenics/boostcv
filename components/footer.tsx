@@ -4,13 +4,11 @@ const navigation = {
   product: [
     { name: "Features", href: "#features" },
     { name: "Templates", href: "#templates" },
-    { name: "Pricing", href: "#pricing" },
     { name: "Examples", href: "#examples" },
   ],
   company: [
     { name: "About", href: "#about" },
     { name: "Blog", href: "#blog" },
-    { name: "Careers", href: "#careers" },
     { name: "Press", href: "#press" },
   ],
   support: [
@@ -73,7 +71,7 @@ export function Footer() {
                   BoostCV
                 </a>
                 <p className="mt-4 max-w-xs text-sm text-zinc-400 leading-relaxed">
-                  Create professional, ATS-friendly resumes in minutes. Land your dream job with confidence.
+                 Build professional resumes that get you noticed by hiring managers. Simple, powerful tools to accelerate your career success.
                 </p>
                 {/* Social Links */}
                 <div className="mt-6 flex gap-4">
