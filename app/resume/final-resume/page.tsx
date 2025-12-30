@@ -15,6 +15,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { DownloadDialog } from '@/components/resume/download-dialog';
 import { ResumePreview, DesignOptions, defaultDesignOptions } from '@/components/resume/resume-preview';
+import { TemplatePreviewRenderer } from '@/components/resume/template-preview-renderer';
 import { ResumeData } from '@/lib/types/resume';
 import { resumeTemplates } from '@/lib/resume-templates';
 import { cn } from '@/lib/utils';
@@ -46,7 +47,23 @@ const fontFamilies = [
 ];
 
 // Color options for templates
-const templateColors = ['#1e3a5f', '#f97316', '#3b82f6', '#6b7280', '#f472b6'];
+const templateColors = ['#1e3a5f', '#f97316', '#3b82f6', '#71717a', '#000', '#f472b6'];
+
+// Sample data for template previews
+const samplePreviewData = {
+  name: 'John Doe',
+  title: 'Software Engineer',
+  email: 'john@example.com',
+  phone: '+1 234 567 8900',
+  location: 'New York, NY',
+  summary: 'Experienced software engineer with a passion for building scalable applications.',
+  experience: [
+    { title: 'Senior Developer', company: 'Tech Corp', date: '2020-2024' },
+    { title: 'Developer', company: 'StartUp Inc', date: '2018-2020' },
+  ],
+  education: { degree: 'BS Computer Science', school: 'University', date: '2018' },
+  skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'Python'],
+};
 
 export default function FinalResumePage() {
   const router = useRouter();
@@ -58,6 +75,7 @@ export default function FinalResumePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [resumeName, setResumeName] = useState('Resume_1');
   const [isEditingName, setIsEditingName] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string>('#1e3a5f');
 
   useEffect(() => {
     // Get resume data from localStorage
@@ -72,6 +90,12 @@ export default function FinalResumePage() {
     try {
       const parsed = JSON.parse(savedData);
       setResumeData(parsed);
+      
+      // Set initial color from template
+      const template = resumeTemplates.find((t) => t.id === parsed.templateId);
+      if (template) {
+        setSelectedColor(template.primaryColor);
+      }
     } catch {
       router.push('/resume/templates');
       return;
@@ -191,6 +215,16 @@ export default function FinalResumePage() {
   const handleTemplateChange = (templateId: string) => {
     setResumeData({ ...resumeData, templateId });
     localStorage.setItem('selectedTemplateId', templateId);
+    
+    // Update color to match new template
+    const template = resumeTemplates.find((t) => t.id === templateId);
+    if (template) {
+      setSelectedColor(template.primaryColor);
+    }
+  };
+
+  const handleColorChange = (color: string) => {
+    setSelectedColor(color);
   };
 
   const resetDesignOptions = () => {
@@ -260,15 +294,50 @@ export default function FinalResumePage() {
                 <div className="border-b pb-4" />
 
                 {/* Color Options */}
-                <div className="flex gap-2">
-                  {templateColors.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => {/* Color selection feature - for future enhancement */}}
-                      className="w-8 h-8 rounded-full border-2 border-transparent transition-transform hover:scale-110"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Template Color</Label>
+                  <div className="flex gap-2 items-center flex-wrap">
+                    {templateColors.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => handleColorChange(color)}
+                        className={cn(
+                          "w-9 h-9 rounded-full border-2 transition-all hover:scale-110",
+                          selectedColor === color
+                            ? "border-zinc-900 ring-2 ring-zinc-300 dark:border-zinc-100 dark:ring-zinc-700"
+                            : "border-zinc-200 hover:border-zinc-400"
+                        )}
+                        style={{ backgroundColor: color }}
+                        title={color}
+                      />
+                    ))}
+                    {/* Custom Color Picker */}
+                    <div className="relative group">
+                      <label
+                        className={cn(
+                          "w-9 h-9 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all hover:scale-110",
+                          !templateColors.includes(selectedColor)
+                            ? "border-zinc-900 ring-2 ring-zinc-300 dark:border-zinc-100 dark:ring-zinc-700"
+                            : "border-zinc-200 hover:border-zinc-400"
+                        )}
+                        style={{ 
+                          backgroundColor: !templateColors.includes(selectedColor) ? selectedColor : 'transparent',
+                          backgroundImage: templateColors.includes(selectedColor) 
+                            ? 'conic-gradient(from 90deg, red, yellow, lime, aqua, blue, magenta, red)' 
+                            : 'none'
+                        }}
+                        title="Custom color"
+                      >
+                        <input
+                          type="color"
+                          value={selectedColor}
+                          onChange={(e) => handleColorChange(e.target.value)}
+                          className="opacity-0 w-0 h-0 absolute"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Selected: {selectedColor}</p>
                 </div>
 
                 {/* Template Grid */}
@@ -278,30 +347,19 @@ export default function FinalResumePage() {
                       key={t.id}
                       onClick={() => handleTemplateChange(t.id)}
                       className={cn(
-                        'relative aspect-3/4 border-2 rounded-lg overflow-hidden transition-all hover:shadow-lg',
+                        'relative aspect-3/4 border-2 rounded-lg overflow-hidden transition-all hover:shadow-lg text-left',
                         resumeData.templateId === t.id
                           ? 'border-zinc-900 ring-2 ring-zinc-300 dark:border-zinc-100 dark:ring-zinc-700'
                           : 'border-gray-200 hover:border-gray-300'
                       )}
                     >
-                      {/* Template Preview Placeholder */}
-                      <div
-                        className="absolute inset-0 bg-white p-2"
-                        style={{ borderTop: `3px solid ${t.primaryColor}` }}
-                      >
-                        <div className="space-y-1">
-                          <div
-                            className="h-3 w-16 mx-auto rounded"
-                            style={{ backgroundColor: t.primaryColor }}
-                          />
-                          <div className="h-1 w-12 mx-auto bg-gray-200 rounded" />
-                          <div className="h-1 w-20 mx-auto bg-gray-100 rounded" />
-                          <div className="mt-2 space-y-1">
-                            <div className="h-1.5 w-full bg-gray-100 rounded" />
-                            <div className="h-1.5 w-3/4 bg-gray-100 rounded" />
-                            <div className="h-1.5 w-5/6 bg-gray-100 rounded" />
-                          </div>
-                        </div>
+                      {/* Template Preview */}
+                      <div className="absolute inset-0 text-left">
+                        <TemplatePreviewRenderer
+                          layout={t.layout}
+                          color={resumeData.templateId === t.id ? selectedColor : t.primaryColor}
+                          sampleData={samplePreviewData}
+                        />
                       </div>
                       {resumeData.templateId === t.id && (
                         <div className="absolute top-1 right-1 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 rounded-full p-0.5">
@@ -572,6 +630,7 @@ export default function FinalResumePage() {
             <ResumePreview
               data={resumeData}
               designOptions={designOptions}
+              customColor={selectedColor}
               showScore={false}
               currentPage={currentPage}
               onPageChange={setCurrentPage}

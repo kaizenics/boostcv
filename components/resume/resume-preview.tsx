@@ -28,6 +28,7 @@ interface ResumePreviewProps {
   data: ResumeData;
   className?: string;
   designOptions?: DesignOptions;
+  customColor?: string;
   showScore?: boolean;
   currentPage?: number;
   onPageChange?: (page: number) => void;
@@ -130,12 +131,16 @@ export function ResumePreview({
   data, 
   className,
   designOptions = defaultDesignOptions,
+  customColor,
   showScore = true,
   currentPage: controlledPage,
   onPageChange
 }: ResumePreviewProps) {
   const template = resumeTemplates.find((t) => t.id === data.templateId) || resumeTemplates[0];
   const [internalPage, setInternalPage] = useState(1);
+  
+  // Use custom color if provided, otherwise use template's primary color
+  const activeColor = customColor || template.primaryColor;
   
   // Use controlled or uncontrolled page state
   const currentPage = controlledPage !== undefined ? controlledPage : internalPage;
@@ -202,7 +207,7 @@ export function ResumePreview({
       {/* Education Section - Harvard puts education first */}
       {data.educations.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Education" layout="harvard" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Education" layout="harvard" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
             {data.educations.map((edu) => (
               <div key={edu.id}>
@@ -226,7 +231,7 @@ export function ResumePreview({
       {/* Experience Section */}
       {data.experiences.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Experience" layout="harvard" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Experience" layout="harvard" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
             {data.experiences.map((exp) => (
               <div key={exp.id}>
@@ -252,7 +257,7 @@ export function ResumePreview({
       {/* Skills Section */}
       {data.skills.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Skills & Interests" layout="harvard" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Skills & Interests" layout="harvard" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <p className="text-zinc-700">
             {data.skills.map((skill) => skill.name).join(', ')}
           </p>
@@ -274,8 +279,8 @@ export function ResumePreview({
       }}
     >
       {/* Header with accent */}
-      <div className="p-6 pb-4" style={{ borderBottom: `3px solid ${template.primaryColor}` }}>
-        <h1 className="text-2xl font-bold" style={{ color: template.primaryColor }}>
+      <div className="p-6 pb-4" style={{ borderBottom: `3px solid ${activeColor}` }}>
+        <h1 className="text-2xl font-bold" style={{ color: activeColor }}>
           {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
         </h1>
         {data.contact.desiredJobTitle && (
@@ -294,7 +299,7 @@ export function ResumePreview({
           {/* Summary */}
           {data.summary && (
             <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-              <SectionHeader title="Profile" layout="modern" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+              <SectionHeader title="Profile" layout="modern" color={activeColor} spacing={designOptions.paragraphSpacing} />
               <p className="text-zinc-600">{data.summary}</p>
             </div>
           )}
@@ -302,7 +307,7 @@ export function ResumePreview({
           {/* Experience */}
           {data.experiences.length > 0 && (
             <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-              <SectionHeader title="Experience" layout="modern" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+              <SectionHeader title="Experience" layout="modern" color={activeColor} spacing={designOptions.paragraphSpacing} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
                 {data.experiences.map((exp) => (
                   <div key={exp.id}>
@@ -330,7 +335,7 @@ export function ResumePreview({
           {/* Education */}
           {data.educations.length > 0 && (
             <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-              <SectionHeader title="Education" layout="modern" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+              <SectionHeader title="Education" layout="modern" color={activeColor} spacing={designOptions.paragraphSpacing} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
                 {data.educations.map((edu) => (
                   <div key={edu.id}>
@@ -346,13 +351,13 @@ export function ResumePreview({
           {/* Skills */}
           {data.skills.length > 0 && (
             <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-              <SectionHeader title="Skills" layout="modern" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+              <SectionHeader title="Skills" layout="modern" color={activeColor} spacing={designOptions.paragraphSpacing} />
               <div className="flex flex-wrap gap-1">
                 {data.skills.map((skill) => (
                   <span
                     key={skill.id}
                     className="px-2 py-0.5 text-sm rounded"
-                    style={{ backgroundColor: `${template.primaryColor}15`, color: template.primaryColor }}
+                    style={{ backgroundColor: `${activeColor}15`, color: activeColor }}
                   >
                     {skill.name}
                   </span>
@@ -364,7 +369,7 @@ export function ResumePreview({
           {/* Languages */}
           {data.finalize.languages.length > 0 && (
             <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-              <SectionHeader title="Languages" layout="modern" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+              <SectionHeader title="Languages" layout="modern" color={activeColor} spacing={designOptions.paragraphSpacing} />
               <div className="space-y-1">
                 {data.finalize.languages.map((lang) => (
                   <p key={lang.id} className="text-zinc-600">
@@ -382,14 +387,14 @@ export function ResumePreview({
   // Sidebar Layout - Left sidebar with contact/skills, right content
   const renderSidebarLayout = () => (
     <div
-      className="flex min-h-[600px]"
+      className="flex min-h-150"
       style={{ 
         fontSize: `${designOptions.fontSize}px`,
         lineHeight: designOptions.lineSpacing
       }}
     >
       {/* Left Sidebar */}
-      <div className="w-1/3 p-6 text-white" style={{ backgroundColor: template.primaryColor }}>
+      <div className="w-1/3 p-6 text-white" style={{ backgroundColor: activeColor }}>
         {/* Profile Avatar Placeholder */}
         <div className="w-20 h-20 mx-auto rounded-full bg-white/20 mb-4 flex items-center justify-center text-2xl font-bold">
           {(data.contact.firstName?.[0] || 'Y')}{(data.contact.lastName?.[0] || 'N')}
@@ -448,7 +453,7 @@ export function ResumePreview({
         {/* Summary */}
         {data.summary && (
           <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-            <SectionHeader title="About Me" layout="sidebar" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+            <SectionHeader title="About Me" layout="sidebar" color={activeColor} spacing={designOptions.paragraphSpacing} />
             <p className="text-zinc-600">{data.summary}</p>
           </div>
         )}
@@ -456,13 +461,13 @@ export function ResumePreview({
         {/* Experience */}
         {data.experiences.length > 0 && (
           <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-            <SectionHeader title="Experience" layout="sidebar" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+            <SectionHeader title="Experience" layout="sidebar" color={activeColor} spacing={designOptions.paragraphSpacing} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
               {data.experiences.map((exp) => (
                 <div key={exp.id}>
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-semibold" style={{ color: template.primaryColor }}>{exp.jobTitle}</p>
+                      <p className="font-semibold" style={{ color: activeColor }}>{exp.jobTitle}</p>
                       <p className="text-zinc-600">{exp.employer}</p>
                     </div>
                     <p className="text-zinc-500 text-sm">
@@ -481,11 +486,11 @@ export function ResumePreview({
         {/* Education */}
         {data.educations.length > 0 && (
           <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-            <SectionHeader title="Education" layout="sidebar" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+            <SectionHeader title="Education" layout="sidebar" color={activeColor} spacing={designOptions.paragraphSpacing} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
               {data.educations.map((edu) => (
                 <div key={edu.id}>
-                  <p className="font-semibold" style={{ color: template.primaryColor }}>{edu.degree}</p>
+                  <p className="font-semibold" style={{ color: activeColor }}>{edu.degree}</p>
                   <p className="text-zinc-600">{edu.schoolName}</p>
                   <p className="text-zinc-500 text-sm">{edu.startDate} – {edu.endDate}</p>
                 </div>
@@ -507,7 +512,7 @@ export function ResumePreview({
       }}
     >
       {/* Bold Header */}
-      <div className="p-6 text-white" style={{ backgroundColor: template.primaryColor }}>
+      <div className="p-6 text-white" style={{ backgroundColor: activeColor }}>
         <h1 className="text-3xl font-bold uppercase tracking-wide">
           {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
         </h1>
@@ -525,7 +530,7 @@ export function ResumePreview({
         {/* Summary */}
         {data.summary && (
           <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-            <SectionHeader title="Profile" layout="bold" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+            <SectionHeader title="Profile" layout="bold" color={activeColor} spacing={designOptions.paragraphSpacing} />
             <p className="text-zinc-600">{data.summary}</p>
           </div>
         )}
@@ -533,14 +538,14 @@ export function ResumePreview({
         {/* Experience */}
         {data.experiences.length > 0 && (
           <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-            <SectionHeader title="Experience" layout="bold" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+            <SectionHeader title="Experience" layout="bold" color={activeColor} spacing={designOptions.paragraphSpacing} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
               {data.experiences.map((exp) => (
-                <div key={exp.id} className="border-l-4 pl-4" style={{ borderColor: template.primaryColor }}>
+                <div key={exp.id} className="border-l-4 pl-4" style={{ borderColor: activeColor }}>
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-bold text-zinc-800">{exp.jobTitle}</p>
-                      <p className="font-semibold" style={{ color: template.primaryColor }}>{exp.employer}</p>
+                      <p className="font-semibold" style={{ color: activeColor }}>{exp.employer}</p>
                     </div>
                     <p className="text-zinc-500 text-sm">
                       {exp.startDate} – {exp.isCurrentJob ? 'Present' : exp.endDate}
@@ -558,12 +563,12 @@ export function ResumePreview({
         {/* Education */}
         {data.educations.length > 0 && (
           <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-            <SectionHeader title="Education" layout="bold" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+            <SectionHeader title="Education" layout="bold" color={activeColor} spacing={designOptions.paragraphSpacing} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
               {data.educations.map((edu) => (
-                <div key={edu.id} className="border-l-4 pl-4" style={{ borderColor: template.primaryColor }}>
+                <div key={edu.id} className="border-l-4 pl-4" style={{ borderColor: activeColor }}>
                   <p className="font-bold text-zinc-800">{edu.degree}</p>
-                  <p style={{ color: template.primaryColor }}>{edu.schoolName}</p>
+                  <p style={{ color: activeColor }}>{edu.schoolName}</p>
                   <p className="text-zinc-500 text-sm">{edu.startDate} – {edu.endDate}</p>
                 </div>
               ))}
@@ -574,13 +579,13 @@ export function ResumePreview({
         {/* Skills */}
         {data.skills.length > 0 && (
           <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-            <SectionHeader title="Skills" layout="bold" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+            <SectionHeader title="Skills" layout="bold" color={activeColor} spacing={designOptions.paragraphSpacing} />
             <div className="flex flex-wrap gap-2">
               {data.skills.map((skill) => (
                 <span
                   key={skill.id}
                   className="px-3 py-1 text-white rounded"
-                  style={{ backgroundColor: template.primaryColor }}
+                  style={{ backgroundColor: activeColor }}
                 >
                   {skill.name}
                 </span>
@@ -618,7 +623,7 @@ export function ResumePreview({
       {/* Summary */}
       {data.summary && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Summary" layout="minimal" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Summary" layout="minimal" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <p className="text-zinc-600">{data.summary}</p>
         </div>
       )}
@@ -626,7 +631,7 @@ export function ResumePreview({
       {/* Experience */}
       {data.experiences.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Experience" layout="minimal" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Experience" layout="minimal" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
             {data.experiences.map((exp) => (
               <div key={exp.id}>
@@ -651,7 +656,7 @@ export function ResumePreview({
       {/* Education */}
       {data.educations.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Education" layout="minimal" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Education" layout="minimal" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
             {data.educations.map((edu) => (
               <div key={edu.id}>
@@ -667,7 +672,7 @@ export function ResumePreview({
       {/* Skills */}
       {data.skills.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Skills" layout="minimal" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Skills" layout="minimal" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <p className="text-zinc-600">
             {data.skills.map((skill) => skill.name).join(' • ')}
           </p>
@@ -689,8 +694,8 @@ export function ResumePreview({
       }}
     >
       {/* Header with border */}
-      <div className="border-b-2 pb-4" style={{ borderColor: template.primaryColor, marginBottom: `${designOptions.sectionSpacing}px` }}>
-        <h1 className="text-3xl font-bold" style={{ color: template.primaryColor }}>
+      <div className="border-b-2 pb-4" style={{ borderColor: activeColor, marginBottom: `${designOptions.sectionSpacing}px` }}>
+        <h1 className="text-3xl font-bold" style={{ color: activeColor }}>
           {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
         </h1>
         {data.contact.desiredJobTitle && (
@@ -705,7 +710,7 @@ export function ResumePreview({
       {/* Summary */}
       {data.summary && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <p className="text-zinc-600 italic border-l-4 pl-4" style={{ borderColor: template.primaryColor }}>
+          <p className="text-zinc-600 italic border-l-4 pl-4" style={{ borderColor: activeColor }}>
             {data.summary}
           </p>
         </div>
@@ -714,14 +719,14 @@ export function ResumePreview({
       {/* Experience */}
       {data.experiences.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Professional Experience" layout="executive" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Professional Experience" layout="executive" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
             {data.experiences.map((exp) => (
               <div key={exp.id}>
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-bold text-zinc-800">{exp.employer}</p>
-                    <p className="font-semibold" style={{ color: template.primaryColor }}>{exp.jobTitle}</p>
+                    <p className="font-semibold" style={{ color: activeColor }}>{exp.jobTitle}</p>
                     {exp.location && <p className="text-zinc-500">{exp.location}</p>}
                   </div>
                   <p className="text-zinc-500 text-sm">
@@ -740,12 +745,12 @@ export function ResumePreview({
       {/* Education */}
       {data.educations.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Education" layout="executive" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Education" layout="executive" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
             {data.educations.map((edu) => (
               <div key={edu.id}>
                 <p className="font-bold text-zinc-800">{edu.schoolName}</p>
-                <p style={{ color: template.primaryColor }}>{edu.degree}</p>
+                <p style={{ color: activeColor }}>{edu.degree}</p>
                 <p className="text-zinc-500 text-sm">{edu.startDate} – {edu.endDate}</p>
               </div>
             ))}
@@ -756,13 +761,13 @@ export function ResumePreview({
       {/* Skills & Expertise */}
       {data.skills.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Core Competencies" layout="executive" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Core Competencies" layout="executive" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div className="grid grid-cols-3 gap-2">
             {data.skills.map((skill) => (
               <div
                 key={skill.id}
                 className="text-center py-1 border rounded"
-                style={{ borderColor: template.primaryColor, color: template.primaryColor }}
+                style={{ borderColor: activeColor, color: activeColor }}
               >
                 {skill.name}
               </div>
@@ -781,7 +786,7 @@ export function ResumePreview({
     <div
       className="p-8"
       style={{ 
-        borderTop: `4px solid ${template.primaryColor}`,
+        borderTop: `4px solid ${activeColor}`,
         fontSize: `${designOptions.fontSize}px`,
         lineHeight: designOptions.lineSpacing
       }}
@@ -790,7 +795,7 @@ export function ResumePreview({
       <div className="text-center" style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
         <h1
           className="text-2xl font-bold uppercase tracking-wide"
-          style={{ color: template.primaryColor }}
+          style={{ color: activeColor }}
         >
           {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
         </h1>
@@ -806,7 +811,7 @@ export function ResumePreview({
       {/* Summary */}
       {data.summary && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Summary" layout="classic" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Summary" layout="classic" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <p className="text-gray-600">{data.summary}</p>
         </div>
       )}
@@ -814,7 +819,7 @@ export function ResumePreview({
       {/* Experience */}
       {data.experiences.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Experience" layout="classic" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Experience" layout="classic" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
             {data.experiences.map((exp) => (
               <div key={exp.id}>
@@ -843,7 +848,7 @@ export function ResumePreview({
       {/* Education */}
       {data.educations.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Education" layout="classic" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Education" layout="classic" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
             {data.educations.map((edu) => (
               <div key={edu.id}>
@@ -867,13 +872,13 @@ export function ResumePreview({
       {/* Skills */}
       {data.skills.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Skills" layout="classic" color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Skills" layout="classic" color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div className="flex flex-wrap gap-2">
             {data.skills.map((skill) => (
               <span
                 key={skill.id}
                 className="px-2 py-1 bg-gray-100 rounded"
-                style={{ color: template.primaryColor }}
+                style={{ color: activeColor }}
               >
                 {skill.name}
                 {skill.showLevel && skill.level && (
@@ -896,7 +901,7 @@ export function ResumePreview({
       {/* Languages */}
       {data.finalize.languages.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Languages" layout={layoutType} color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Languages" layout={layoutType} color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div className="flex flex-wrap gap-3">
             {data.finalize.languages.map((lang) => (
               <span key={lang.id}>
@@ -910,7 +915,7 @@ export function ResumePreview({
       {/* Certifications */}
       {data.finalize.certifications.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Certifications" layout={layoutType} color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Certifications" layout={layoutType} color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {data.finalize.certifications.map((cert) => (
               <p key={cert.id}>
@@ -924,7 +929,7 @@ export function ResumePreview({
       {/* Websites/Links */}
       {data.finalize.websites.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Links" layout={layoutType} color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Links" layout={layoutType} color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div className="flex flex-wrap gap-4">
             {data.finalize.websites.map((site) => (
               <span key={site.id} className="text-blue-600">
@@ -940,9 +945,9 @@ export function ResumePreview({
   // Render page 2 content
   const renderPage2Content = () => (
     <div
-      className="p-8 min-h-[600px]"
+      className="p-8 min-h-150"
       style={{ 
-        borderTop: layout === 'classic' ? `4px solid ${template.primaryColor}` : undefined,
+        borderTop: layout === 'classic' ? `4px solid ${activeColor}` : undefined,
         backgroundColor: layout === 'sidebar' ? undefined : 'white',
         fontSize: `${designOptions.fontSize}px`,
         lineHeight: designOptions.lineSpacing
@@ -952,7 +957,7 @@ export function ResumePreview({
       <div className="text-center" style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
         <h1
           className="text-2xl font-bold uppercase tracking-wide"
-          style={{ color: template.primaryColor }}
+          style={{ color: activeColor }}
         >
           {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
         </h1>
@@ -962,7 +967,7 @@ export function ResumePreview({
       {/* Awards & Honors */}
       {data.finalize.awards.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Awards & Honors" layout={layout} color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Awards & Honors" layout={layout} color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {data.finalize.awards.map((award) => (
               <p key={award.id}>
@@ -976,7 +981,7 @@ export function ResumePreview({
       {/* References */}
       {data.finalize.references.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="References" layout={layout} color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="References" layout={layout} color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
             {data.finalize.references.map((ref) => (
               <div key={ref.id}>
@@ -996,7 +1001,7 @@ export function ResumePreview({
       {/* Hobbies & Interests */}
       {data.finalize.hobbies.length > 0 && (
         <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title="Hobbies & Interests" layout={layout} color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title="Hobbies & Interests" layout={layout} color={activeColor} spacing={designOptions.paragraphSpacing} />
           <div className="flex flex-wrap gap-2">
             {data.finalize.hobbies.map((hobby) => (
               <span key={hobby.id} className="bg-gray-100 px-2 py-1 rounded">
@@ -1010,7 +1015,7 @@ export function ResumePreview({
       {/* Custom Sections */}
       {data.finalize.customSections.map((section) => (
         <div key={section.id} style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-          <SectionHeader title={section.sectionName} layout={layout} color={template.primaryColor} spacing={designOptions.paragraphSpacing} />
+          <SectionHeader title={section.sectionName} layout={layout} color={activeColor} spacing={designOptions.paragraphSpacing} />
           <p className="text-gray-600">{section.description}</p>
         </div>
       ))}
@@ -1018,7 +1023,7 @@ export function ResumePreview({
   );
 
   return (
-    <div className={cn('bg-white shadow-xl rounded-lg overflow-hidden', className)} style={{ fontFamily: designOptions.fontFamily }}>
+    <div className={cn('bg-white shadow-xl rounded-lg overflow-hidden flex flex-col', className)} style={{ fontFamily: designOptions.fontFamily }}>
       {/* Resume Score Header */}
       {showScore && (
         <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-b">
@@ -1032,10 +1037,12 @@ export function ResumePreview({
       )}
 
       {/* Resume Content - Page 1 */}
-      {currentPage === 1 && renderResumeContent()}
+      <div className="flex-1 overflow-auto">
+        {currentPage === 1 && renderResumeContent()}
 
-      {/* Resume Content - Page 2 */}
-      {currentPage === 2 && hasSecondPageContent && renderPage2Content()}
+        {/* Resume Content - Page 2 */}
+        {currentPage === 2 && hasSecondPageContent && renderPage2Content()}
+      </div>
 
       {/* Footer with Pagination */}
       <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t text-sm text-gray-500">
