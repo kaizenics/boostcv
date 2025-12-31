@@ -3,6 +3,7 @@ import { Manrope, Lora } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
+import { TRPCProvider } from "@/trpc/client";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -44,17 +45,19 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${lora.variable} antialiased font-sans`}
       >
-        <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            forcedTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
-        </AuthProvider>
+        <TRPCProvider>
+          <AuthProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              forcedTheme="light"
+              enableSystem={false}
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </AuthProvider>
+        </TRPCProvider>
       </body>
     </html>
   );
