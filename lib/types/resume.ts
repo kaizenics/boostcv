@@ -6,6 +6,7 @@ export interface ContactInfo {
   desiredJobTitle: string;
   phone: string;
   email: string;
+  photoUrl?: string;
 }
 
 export interface Experience {

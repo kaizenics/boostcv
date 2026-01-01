@@ -12,18 +12,69 @@ export interface TemplateData {
 
 // Sample resume data for template previews
 export const sampleResumeData = {
-  name: "Sarah Johnson",
+  name: "John Smith",
   title: "Senior Product Designer",
-  email: "sarah.j@email.com",
+  email: "john.s@email.com",
   phone: "(555) 123-4567",
   location: "San Francisco, CA",
-  summary: "Creative product designer with 8+ years of experience crafting user-centered digital experiences.",
+  summary: "Innovative product designer with 8+ years of experience crafting user-centered digital experiences. Passionate about creating intuitive interfaces that solve real-world problems and enhance user satisfaction.",
   experience: [
-    { title: "Senior Product Designer", company: "TechCorp Inc.", date: "2021 - Present" },
-    { title: "UI/UX Designer", company: "StartupXYZ", date: "2018 - 2021" },
+    {
+      title: "Senior Product Designer",
+      company: "TechCorp Inc.",
+      date: "2021 - Present",
+      location: "San Francisco, CA",
+      description: "Led the design of flagship products, resulting in a 40% increase in user engagement. Collaborated with cross-functional teams including engineering, marketing, and product management to deliver innovative solutions. Conducted user research, created wireframes and prototypes, and implemented design systems that improved consistency across platforms."
+    },
+    {
+      title: "UI/UX Designer",
+      company: "StartupXYZ",
+      date: "2018 - 2021",
+      location: "San Francisco, CA",
+      description: "Designed user interfaces for mobile and web applications, focusing on usability and accessibility. Conducted user research and usability testing to enhance product usability. Worked closely with developers to ensure pixel-perfect implementation of designs."
+    },
+    {
+      title: "Junior Designer",
+      company: "DesignStudio",
+      date: "2016 - 2018",
+      location: "Palo Alto, CA",
+      description: "Assisted in creating visual designs for various client projects. Learned industry-standard tools and best practices in user experience design. Contributed to team brainstorming sessions and design critiques."
+    }
   ],
-  education: { degree: "B.A. in Design", school: "Stanford University", date: "2014 - 2018" },
-  skills: ["Figma", "React", "User Research", "Prototyping", "Design Systems"],
+  education: {
+    degree: "B.A. in Design",
+    school: "Stanford University",
+    date: "2014 - 2018",
+    location: "Stanford, CA",
+    description: "Graduated Magna Cum Laude with a GPA of 3.8. Focused on digital design, user experience, and graphic design. Completed capstone project on mobile app design trends."
+  },
+  skills: ["Figma", "React", "User Research", "Prototyping", "Design Systems", "Adobe Creative Suite", "Sketch", "InVision"],
+  languages: [
+    { name: "English", proficiency: "Native" },
+    { name: "Spanish", proficiency: "Conversational" },
+    { name: "French", proficiency: "Basic" }
+  ],
+  certifications: [
+    { name: "Certified Scrum Master", issuer: "Scrum Alliance", date: "2020" },
+    { name: "Google UX Design Certificate", issuer: "Google", date: "2019" },
+    { name: "Adobe Certified Expert in XD", issuer: "Adobe", date: "2018" }
+  ],
+  awards: [
+    { title: "Design Excellence Award", issuer: "TechCorp Inc.", date: "2022" },
+    { title: "Best UI/UX Design", issuer: "StartupXYZ", date: "2020" },
+    { title: "Student Design Competition Winner", issuer: "Stanford University", date: "2017" }
+  ],
+  websites: [
+    { label: "Portfolio", url: "https://johnsmith.design" },
+    { label: "LinkedIn", url: "https://linkedin.com/in/johnsmith" },
+    { label: "GitHub", url: "https://github.com/johnsmith" }
+  ],
+  references: [
+    { name: "Jane Doe", position: "Product Manager", company: "TechCorp Inc.", email: "jane.doe@techcorp.com", phone: "(555) 987-6543" },
+    { name: "Bob Johnson", position: "CTO", company: "StartupXYZ", email: "bob.johnson@startupxyz.com", phone: "(555) 456-7890" },
+    { name: "Alice Brown", position: "Design Director", company: "DesignStudio", email: "alice.brown@designstudio.com", phone: "(555) 321-0987" }
+  ],
+  hobbies: ["Photography", "Hiking", "Reading Science Fiction", "Playing Guitar", "Cooking"]
 };
 
 // Template category definitions

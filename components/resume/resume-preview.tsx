@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 // Design options interface
 export interface DesignOptions {
@@ -123,6 +124,7 @@ interface ResumePreviewProps {
   className?: string;
   designOptions?: DesignOptions;
   showScore?: boolean;
+  showPhoto?: boolean;
   currentPage?: number;
   onPageChange?: (page: number) => void;
 }
@@ -133,6 +135,7 @@ export function ResumePreview({
   designOptions = defaultDesignOptions,
   customColor,
   showScore = true,
+  showPhoto = false,
   currentPage: controlledPage,
   onPageChange
 }: ResumePreviewProps) {
@@ -194,6 +197,11 @@ export function ResumePreview({
     >
       {/* Harvard Header - Name centered, contact below */}
       <div className="text-center border-b border-zinc-900 pb-3" style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
+        {showPhoto && data.contact.photoUrl && (
+          <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-2 border-zinc-200 mb-3">
+            <Image src={data.contact.photoUrl} alt="Profile" width={96} height={96} className="object-cover w-full h-full" />
+          </div>
+        )}
         <h1 className="text-2xl font-bold uppercase tracking-wide text-zinc-900">
           {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
         </h1>
@@ -280,15 +288,24 @@ export function ResumePreview({
     >
       {/* Header with accent */}
       <div className="p-6 pb-4" style={{ borderBottom: `3px solid ${activeColor}` }}>
-        <h1 className="text-2xl font-bold" style={{ color: activeColor }}>
-          {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
-        </h1>
-        {data.contact.desiredJobTitle && (
-          <p className="text-zinc-600 mt-1">{data.contact.desiredJobTitle}</p>
-        )}
-        <div className="flex gap-4 mt-2 text-sm text-zinc-500">
-          {data.contact.email && <span>{data.contact.email}</span>}
-          {data.contact.phone && <span>{data.contact.phone}</span>}
+        <div className="flex items-center gap-4">
+          {showPhoto && data.contact.photoUrl && (
+            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-zinc-200 shrink-0">
+              <Image src={data.contact.photoUrl} alt="Profile" width={80} height={80} className="object-cover w-full h-full" />
+            </div>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: activeColor }}>
+              {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
+            </h1>
+            {data.contact.desiredJobTitle && (
+              <p className="text-zinc-600 mt-1">{data.contact.desiredJobTitle}</p>
+            )}
+            <div className="flex gap-4 mt-2 text-sm text-zinc-500">
+              {data.contact.email && <span>{data.contact.email}</span>}
+              {data.contact.phone && <span>{data.contact.phone}</span>}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -395,10 +412,16 @@ export function ResumePreview({
     >
       {/* Left Sidebar */}
       <div className="w-1/3 p-6 text-white" style={{ backgroundColor: activeColor }}>
-        {/* Profile Avatar Placeholder */}
-        <div className="w-20 h-20 mx-auto rounded-full bg-white/20 mb-4 flex items-center justify-center text-2xl font-bold">
-          {(data.contact.firstName?.[0] || 'Y')}{(data.contact.lastName?.[0] || 'N')}
-        </div>
+        {/* Profile Avatar */}
+        {showPhoto && data.contact.photoUrl ? (
+          <div className="w-20 h-20 mx-auto rounded-full overflow-hidden bg-white/30 mb-4">
+            <Image src={data.contact.photoUrl} alt="Profile" width={80} height={80} className="object-cover w-full h-full" />
+          </div>
+        ) : (
+          <div className="w-20 h-20 mx-auto rounded-full bg-white/20 mb-4 flex items-center justify-center text-2xl font-bold">
+            {(data.contact.firstName?.[0] || 'Y')}{(data.contact.lastName?.[0] || 'N')}
+          </div>
+        )}
         
         <div className="text-center mb-6">
           <h1 className="text-xl font-bold">
@@ -513,15 +536,24 @@ export function ResumePreview({
     >
       {/* Bold Header */}
       <div className="p-6 text-white" style={{ backgroundColor: activeColor }}>
-        <h1 className="text-3xl font-bold uppercase tracking-wide">
-          {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
-        </h1>
-        {data.contact.desiredJobTitle && (
-          <p className="text-white/80 text-lg mt-1">{data.contact.desiredJobTitle}</p>
-        )}
-        <div className="flex gap-4 mt-3 text-sm text-white/70">
-          {data.contact.email && <span>{data.contact.email}</span>}
-          {data.contact.phone && <span>{data.contact.phone}</span>}
+        <div className="flex items-center gap-4">
+          {showPhoto && data.contact.photoUrl && (
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-white/20 shrink-0">
+              <Image src={data.contact.photoUrl} alt="Profile" width={96} height={96} className="object-cover w-full h-full" />
+            </div>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold uppercase tracking-wide">
+              {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
+            </h1>
+            {data.contact.desiredJobTitle && (
+              <p className="text-white/80 text-lg mt-1">{data.contact.desiredJobTitle}</p>
+            )}
+            <div className="flex gap-4 mt-3 text-sm text-white/70">
+              {data.contact.email && <span>{data.contact.email}</span>}
+              {data.contact.phone && <span>{data.contact.phone}</span>}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -608,6 +640,11 @@ export function ResumePreview({
     >
       {/* Centered Header */}
       <div className="text-center" style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
+        {showPhoto && data.contact.photoUrl && (
+          <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-zinc-200 mb-3">
+            <Image src={data.contact.photoUrl} alt="Profile" width={80} height={80} className="object-cover w-full h-full" />
+          </div>
+        )}
         <h1 className="text-2xl font-semibold text-zinc-800">
           {data.contact.firstName || 'Your'} {data.contact.lastName || 'Name'}
         </h1>
@@ -695,15 +732,24 @@ export function ResumePreview({
     >
       {/* Header with border */}
       <div className="border-b-2 pb-4" style={{ borderColor: activeColor, marginBottom: `${designOptions.sectionSpacing}px` }}>
-        <h1 className="text-3xl font-bold" style={{ color: activeColor }}>
-          {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
-        </h1>
-        {data.contact.desiredJobTitle && (
-          <p className="text-zinc-600 text-lg mt-1">{data.contact.desiredJobTitle}</p>
-        )}
-        <div className="flex gap-4 mt-2 text-sm text-zinc-500">
-          {data.contact.email && <span>{data.contact.email}</span>}
-          {data.contact.phone && <span>{data.contact.phone}</span>}
+        <div className="flex items-center gap-4">
+          {showPhoto && data.contact.photoUrl && (
+            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-zinc-200 shrink-0">
+              <Image src={data.contact.photoUrl} alt="Profile" width={96} height={96} className="object-cover w-full h-full" />
+            </div>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold" style={{ color: activeColor }}>
+              {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
+            </h1>
+            {data.contact.desiredJobTitle && (
+              <p className="text-zinc-600 text-lg mt-1">{data.contact.desiredJobTitle}</p>
+            )}
+            <div className="flex gap-4 mt-2 text-sm text-zinc-500">
+              {data.contact.email && <span>{data.contact.email}</span>}
+              {data.contact.phone && <span>{data.contact.phone}</span>}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -793,6 +839,11 @@ export function ResumePreview({
     >
       {/* Header */}
       <div className="text-center" style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
+        {showPhoto && data.contact.photoUrl && (
+          <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-zinc-200 mb-3">
+            <Image src={data.contact.photoUrl} alt="Profile" width={80} height={80} className="object-cover w-full h-full" />
+          </div>
+        )}
         <h1
           className="text-2xl font-bold uppercase tracking-wide"
           style={{ color: activeColor }}

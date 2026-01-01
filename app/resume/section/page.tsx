@@ -41,10 +41,20 @@ export default function ResumeSectionPage() {
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [showPhoto, setShowPhoto] = useState(false);
 
   useEffect(() => {
     // Get the selected template from localStorage
     const templateId = localStorage.getItem("selectedTemplateId");
+    const savedShowPhoto = localStorage.getItem("showPhoto");
+    
+    if (savedShowPhoto) {
+      try {
+        setShowPhoto(JSON.parse(savedShowPhoto));
+      } catch {
+        setShowPhoto(false);
+      }
+    }
 
     if (!templateId) {
       // No template selected, redirect to templates page
@@ -128,6 +138,7 @@ export default function ResumeSectionPage() {
           <ContactsForm
             data={resumeData.contact}
             onChange={(contact) => setResumeData({ ...resumeData, contact })}
+            showPhoto={showPhoto}
           />
         );
       case "experience":
@@ -246,6 +257,7 @@ export default function ResumeSectionPage() {
                           <ResumePreview
                             data={resumeData}
                             className="shadow-none"
+                            showPhoto={showPhoto}
                           />
                         </div>
                       </SheetContent>
@@ -300,6 +312,7 @@ export default function ResumeSectionPage() {
               <ResumePreview
                 data={resumeData}
                 className="h-full"
+                showPhoto={showPhoto}
               />
             </div>
           )}

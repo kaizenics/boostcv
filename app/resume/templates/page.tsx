@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Star, Laptop, FileText, Briefcase, Shield, LayoutGrid, Image } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { templates, sampleResumeData } from "@/lib/data/templates";
 import { TemplatePreviewRenderer } from "@/components/resume/template-preview-renderer";
 
@@ -23,7 +23,7 @@ const categories = [
 // Use centralized sample data
 const sampleData = sampleResumeData;
 
-function ResumeTemplateCard({ template, onUseTemplate }: { template: typeof templates[0]; onUseTemplate: (templateId: string) => void }) {
+function ResumeTemplateCard({ template, onUseTemplate, showPhoto }: { template: typeof templates[0]; onUseTemplate: (templateId: string) => void; showPhoto: boolean }) {
 
   return (
     <motion.div
@@ -40,6 +40,7 @@ function ResumeTemplateCard({ template, onUseTemplate }: { template: typeof temp
             layout={template.layout}
             color={template.primaryColor}
             sampleData={sampleData}
+            showPhoto={showPhoto}
           />
         </div>
 
@@ -76,17 +77,20 @@ function ResumeTemplateCard({ template, onUseTemplate }: { template: typeof temp
 
 export default function ResumeTemplatesPage() {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [showPhoto, setShowPhoto] = useState(false);
   const router = useRouter();
 
   const handleUseTemplate = (templateId: string) => {
-    // Store the selected template in localStorage and navigate to section page
+    // Store the selected template and photo preference in localStorage and navigate to section page
     localStorage.setItem('selectedTemplateId', templateId);
+    localStorage.setItem('showPhoto', JSON.stringify(showPhoto));
     router.push('/resume/section');
   };
 
   const handleChooseLater = () => {
     // Set default Celestial template and navigate to section page
     localStorage.setItem('selectedTemplateId', 'celestial');
+    localStorage.setItem('showPhoto', JSON.stringify(showPhoto));
     router.push('/resume/section');
   };
 
@@ -156,21 +160,35 @@ export default function ResumeTemplatesPage() {
       {/* Category Tabs */}
       <div className="border-b border-zinc-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
-            <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-0 sm:justify-center">
-              {categories.map((category) => (
-                <TabsTrigger
-                  key={category.id}
-                  value={category.id}
-                  className="flex items-center gap-2 rounded-none border-0 border-b-2 border-transparent px-4 py-3 text-sm font-medium text-zinc-500 transition-all data-[state=active]:border-b-zinc-900 data-[state=active]:text-zinc-900 hover:text-zinc-900 shadow-none"
-                >
-                  <category.icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{category.name}</span>
-                  <span className="sm:hidden">{category.name.split(" ")[0]}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center justify-between gap-4">
+            <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex-1">
+              <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-0 sm:justify-center">
+                {categories.map((category) => (
+                  <TabsTrigger
+                    key={category.id}
+                    value={category.id}
+                    className="flex items-center gap-2 rounded-none border-0 border-b-2 border-transparent px-4 py-3 text-sm font-medium text-zinc-500 transition-all data-[state=active]:border-b-zinc-900 data-[state=active]:text-zinc-900 hover:text-zinc-900 shadow-none"
+                  >
+                    <category.icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{category.name}</span>
+                    <span className="sm:hidden">{category.name.split(" ")[0]}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+            
+            {/* Photo Toggle Switch */}
+            <div className="flex items-center gap-3 border-l border-zinc-200 pl-4">
+              <label htmlFor="photo-toggle" className="text-sm font-medium text-zinc-700 cursor-pointer whitespace-nowrap">
+                Include photo
+              </label>
+              <Switch
+                id="photo-toggle"
+                checked={showPhoto}
+                onCheckedChange={setShowPhoto}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -181,6 +199,7 @@ export default function ResumeTemplatesPage() {
             <ResumeTemplateCard 
               key={template.id} 
               template={template} 
+              showPhoto={showPhoto}
               onUseTemplate={handleUseTemplate}
             />
           ))}
