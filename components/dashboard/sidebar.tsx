@@ -30,7 +30,7 @@ const sidebarItems = [
   },
   {
     name: "Settings",
-    href: "/dashboard/ssettings",
+    href: "/dashboard/settings",
     icon: Settings,
   },
 ];
@@ -68,17 +68,15 @@ export function DashboardSidebar() {
       <div className="flex h-16 items-center justify-between border-b border-border px-4">
         {(!collapsed || isMobile) && (
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
-              <span className="text-sm font-bold text-background">B</span>
-            </div>
-            <span className="font-display text-lg font-semibold">BoostCV</span>
+            <img src="/boostcv.png" alt="logo" width={30} height={30} />
+            <span className="text-lg font-bold">BoostCV</span>
           </Link>
         )}
         {collapsed && !isMobile && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground mx-auto">
-            <span className="text-sm font-bold text-background">B</span>
+          <div className="flex h-8 w-8 items-center justify-center">
+            <img src="/boostcv.png" alt="logo" width={30} height={30} />
           </div>
-        )} 
+        )}
         {isMobile && (
           <Button
             variant="ghost"
@@ -146,7 +144,7 @@ export function DashboardSidebar() {
         >
           <LogOut className="h-5 w-5" />
           {(!collapsed || isMobile) && <span>Sign Out</span>}
-        </Button> 
+        </Button>
       </div>
     </div>
   );

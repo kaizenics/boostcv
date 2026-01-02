@@ -11,18 +11,6 @@ const actions = [
     href: "/resume/templates",
   },
   {
-    title: "Upload Resume",
-    description: "Import existing PDF",
-    icon: Upload,
-    href: "/resume/upload",
-  },
-  {
-    title: "AI Enhance",
-    description: "Improve your content",
-    icon: Sparkles,
-    href: "/resume/enhance",
-  },
-  {
     title: "Templates",
     description: "Browse designs",
     icon: Layout,
@@ -34,7 +22,7 @@ export function QuickActions() {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-foreground">Quick Actions</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3">
         {actions.map((action) => (
           <Link
             key={action.title}
