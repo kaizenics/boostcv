@@ -7,8 +7,11 @@ import { Star, Laptop, FileText, Briefcase, Shield, LayoutGrid, Image } from "lu
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Spinner } from "@/components/ui/spinner";
 import { templates, sampleResumeData } from "@/lib/data/templates";
 import { TemplatePreviewRenderer } from "@/components/resume/template-preview-renderer";
+import { trpc } from "@/trpc/client";
+import { authClient } from "@/lib/auth-client";
 
 // Template categories with their icons
 const categories = [
@@ -78,20 +81,71 @@ function ResumeTemplateCard({ template, onUseTemplate, showPhoto }: { template: 
 export default function ResumeTemplatesPage() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [showPhoto, setShowPhoto] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
+  const { data: session } = authClient.useSession();
+  
+  const createResume = trpc.resume.create.useMutation();
 
-  const handleUseTemplate = (templateId: string) => {
-    // Store the selected template and photo preference in localStorage and navigate to section page
-    localStorage.setItem('selectedTemplateId', templateId);
-    localStorage.setItem('showPhoto', JSON.stringify(showPhoto));
-    router.push('/resume/section');
+  const handleUseTemplate = async (templateId: string) => {
+    setIsCreating(true);
+    
+    try {
+      // Check if user is authenticated
+      if (!session?.user) {
+        // Store template selection for after sign-in
+        localStorage.setItem('selectedTemplateId', templateId);
+        localStorage.setItem('showPhoto', JSON.stringify(showPhoto));
+        router.push('/sign-in?redirect=/resume/templates');
+        return;
+      }
+
+      // Create a new draft resume in the database
+      const result = await createResume.mutateAsync({
+        title: `Resume_${Date.now()}`,
+        templateId: templateId,
+      });
+
+      // Store resume info in localStorage
+      localStorage.setItem('currentResumeId', result.id);
+      localStorage.setItem('selectedTemplateId', templateId);
+      localStorage.setItem('showPhoto', JSON.stringify(showPhoto));
+      
+      // Navigate to the resume section page with the ID
+      router.push(`/resume/section/${result.id}`);
+    } catch (error) {
+      console.error('Failed to create resume:', error);
+      setIsCreating(false);
+    }
   };
 
-  const handleChooseLater = () => {
-    // Set default Celestial template and navigate to section page
-    localStorage.setItem('selectedTemplateId', 'celestial');
-    localStorage.setItem('showPhoto', JSON.stringify(showPhoto));
-    router.push('/resume/section');
+  const handleChooseLater = async () => {
+    setIsCreating(true);
+    
+    try {
+      // Check if user is authenticated
+      if (!session?.user) {
+        localStorage.setItem('selectedTemplateId', 'celestial');
+        localStorage.setItem('showPhoto', JSON.stringify(showPhoto));
+        router.push('/sign-in?redirect=/resume/templates');
+        return;
+      }
+
+      // Create a new draft resume with default template
+      const result = await createResume.mutateAsync({
+        title: `Resume_${Date.now()}`,
+        templateId: 'celestial',
+      });
+
+      localStorage.setItem('currentResumeId', result.id);
+      localStorage.setItem('selectedTemplateId', 'celestial');
+      localStorage.setItem('showPhoto', JSON.stringify(showPhoto));
+      
+      router.push(`/resume/section/${result.id}`);
+    } catch (error) {
+      console.error('Failed to create resume:', error);
+      setIsCreating(false);
+    }
   };
 
   const filteredTemplates = templates.filter((template) =>
@@ -100,6 +154,16 @@ export default function ResumeTemplatesPage() {
 
   return (
     <div className="min-h-screen bg-white font-sans">
+      {/* Loading Overlay */}
+      {isCreating && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="text-center">
+            <Spinner className="h-8 w-8 mx-auto mb-4 text-white" />
+            <p className="text-white">Creating your resume...</p>
+          </div>
+        </div>
+      )}
+      
       {/* Stepper */}
       <div className="border-b border-zinc-100 bg-white py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-center gap-4 px-4">

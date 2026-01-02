@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { trpc } from "@/trpc/client";
 import {
   Sheet,
   SheetContent,
@@ -42,6 +43,11 @@ export default function ResumeSectionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [showPhoto, setShowPhoto] = useState(false);
+  const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
+
+  // Add tRPC mutations
+  const createResume = trpc.resume.create.useMutation();
+  const updateResume = trpc.resume.update.useMutation();
 
   useEffect(() => {
     // Get the selected template from localStorage
@@ -69,32 +75,74 @@ export default function ResumeSectionPage() {
       return;
     }
 
-    // Check if there's existing resume data in localStorage
-    const savedData = localStorage.getItem("resumeData");
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        if (parsed.templateId === templateId) {
-          setResumeData(parsed);
-        } else {
+    // Check if there's an existing resume ID
+    const existingId = localStorage.getItem("currentResumeId");
+    
+    if (existingId) {
+      // Load existing resume
+      setCurrentResumeId(existingId);
+      
+      // Try to load from localStorage first (faster)
+      const savedData = localStorage.getItem("resumeData");
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          if (parsed.templateId === templateId) {
+            setResumeData(parsed);
+          } else {
+            setResumeData(createEmptyResumeData(templateId));
+          }
+        } catch {
           setResumeData(createEmptyResumeData(templateId));
         }
-      } catch {
+      } else {
         setResumeData(createEmptyResumeData(templateId));
       }
+      setIsLoading(false);
     } else {
-      setResumeData(createEmptyResumeData(templateId));
+      // Create new resume in database
+      const emptyData = createEmptyResumeData(templateId);
+      setResumeData(emptyData);
+      
+      createResume
+        .mutateAsync({
+          title: "Untitled Resume",
+          templateId: templateId,
+        })
+        .then((result) => {
+          setCurrentResumeId(result.id);
+          localStorage.setItem("currentResumeId", result.id);
+        })
+        .catch((error) => {
+          console.error("Failed to create resume:", error);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
-
-    setIsLoading(false);
   }, [router]);
 
-  // Auto-save to localStorage
+  // Auto-save to localStorage and database
   useEffect(() => {
     if (resumeData) {
+      // Save to localStorage for quick access
       localStorage.setItem("resumeData", JSON.stringify(resumeData));
+      
+      // Auto-save to database with debounce
+      if (currentResumeId) {
+        const timeoutId = setTimeout(() => {
+          updateResume.mutate({
+            id: currentResumeId,
+            data: resumeData,
+            lastEditedSection: currentStep,
+            status: "draft",
+          });
+        }, 1000);
+
+        return () => clearTimeout(timeoutId);
+      }
     }
-  }, [resumeData]);
+  }, [resumeData, currentResumeId, currentStep]);
 
   if (isLoading || !resumeData) {
     return (

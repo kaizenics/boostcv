@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { trpc } from "@/trpc/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,7 +49,6 @@ import {
   Layers,
   Paintbrush,
   SpellCheck,
-  MoreHorizontal,
   Check,
   RotateCcw,
   Pencil,
@@ -120,18 +120,28 @@ export default function FinalResumePage() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>("#1e3a5f");
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
 
   // Get auth session
   const { data: session } = authClient.useSession();
+  
+  // Add tRPC mutation
+  const updateResume = trpc.resume.update.useMutation();
 
   useEffect(() => {
     // Get resume data from localStorage
     const savedData = localStorage.getItem("resumeData");
     const templateId = localStorage.getItem("selectedTemplateId");
+    const resumeId = localStorage.getItem("currentResumeId");
 
     if (!savedData || !templateId) {
       router.push("/resume/templates");
       return;
+    }
+    
+    // Set resume ID if exists
+    if (resumeId) {
+      setCurrentResumeId(resumeId);
     }
 
     try {
@@ -158,22 +168,59 @@ export default function FinalResumePage() {
       }
     }
 
+    // Load saved resume name if any
+    const savedResumeName = localStorage.getItem("resumeName");
+    if (savedResumeName) {
+      setResumeName(savedResumeName);
+    }
+
     setIsLoading(false);
   }, [router]);
 
-  // Save design options to localStorage
+  // Save design options to localStorage and database
+  useEffect(() => {
+    if (!isLoading && currentResumeId) {
+      localStorage.setItem("designOptions", JSON.stringify(designOptions));
+      
+      // Auto-save design changes to database with debounce
+      const timeoutId = setTimeout(() => {
+        if (resumeData) {
+          updateResume.mutate({
+            id: currentResumeId,
+            data: resumeData,
+            status: "draft",
+          });
+        }
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [designOptions, isLoading, currentResumeId, resumeData]);
+
+  // Save resume data changes to localStorage and database
+  useEffect(() => {
+    if (resumeData && currentResumeId) {
+      localStorage.setItem("resumeData", JSON.stringify(resumeData));
+      
+      // Auto-save to database with debounce
+      const timeoutId = setTimeout(() => {
+        updateResume.mutate({
+          id: currentResumeId,
+          data: resumeData,
+          status: "draft",
+        });
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [resumeData, currentResumeId]);
+
+  // Save resume name to localStorage when it changes
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem("designOptions", JSON.stringify(designOptions));
+      localStorage.setItem("resumeName", resumeName);
     }
-  }, [designOptions, isLoading]);
-
-  // Save resume data changes
-  useEffect(() => {
-    if (resumeData) {
-      localStorage.setItem("resumeData", JSON.stringify(resumeData));
-    }
-  }, [resumeData]);
+  }, [resumeName, isLoading]);
 
   if (isLoading || !resumeData) {
     return (
@@ -288,8 +335,19 @@ export default function FinalResumePage() {
       setShowAuthAlert(true);
       return;
     }
+    
     // User is authenticated, show download dialog
     setShowDownloadDialog(true);
+  };
+
+  const handleDownloadComplete = () => {
+    // Mark resume as completed when downloaded
+    if (currentResumeId) {
+      updateResume.mutate({
+        id: currentResumeId,
+        status: "completed",
+      });
+    }
   };
 
   const handleSignInRedirect = () => {
@@ -814,6 +872,8 @@ export default function FinalResumePage() {
         isOpen={showDownloadDialog}
         onClose={() => setShowDownloadDialog(false)}
         designOptions={designOptions}
+        customFileName={resumeName}
+        onDownloadComplete={handleDownloadComplete}
       />
     </div>
   );

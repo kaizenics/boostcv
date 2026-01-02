@@ -6,31 +6,16 @@ import { CreateResumeCard } from "@/components/dashboard/create-resume-card";
 import { ResumeCard } from "@/components/dashboard/resume-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { trpc } from "@/trpc/client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-
-// Mock data - replace with real data from your database
-const mockResumes: Array<{
-  id: string;
-  title: string;
-  updatedAt: string;
-  template: string;
-  createdAt: Date;
-}> = [];
-
-// Example with resumes:
-// const mockResumes = [
-//   { id: "1", title: "Software Engineer Resume", updatedAt: "2 hours ago", template: "Professional", createdAt: new Date() },
-//   { id: "2", title: "Product Manager CV", updatedAt: "Yesterday", template: "Modern", createdAt: new Date() },
-//   { id: "3", title: "Marketing Specialist", updatedAt: "3 days ago", template: "Creative", createdAt: new Date() },
-//   { id: "4", title: "Data Analyst Resume", updatedAt: "1 week ago", template: "Minimal", createdAt: new Date() },
-//   { id: "5", title: "UX Designer Portfolio", updatedAt: "2 weeks ago", template: "Creative", createdAt: new Date() },
-// ];
 
 type ViewMode = "grid" | "list";
 
 export default function DocumentsPage() {
-  const [resumes] = useState(mockResumes);
+  // Replace mock data with real tRPC query
+  const { data: resumes = [], isLoading } = trpc.resume.list.useQuery();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const hasResumes = resumes.length > 0;
@@ -38,6 +23,17 @@ export default function DocumentsPage() {
   const filteredResumes = resumes.filter((resume) =>
     resume.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Spinner className="h-8 w-8 mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your documents...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -125,8 +121,8 @@ export default function DocumentsPage() {
                     key={resume.id}
                     id={resume.id}
                     title={resume.title}
-                    updatedAt={resume.updatedAt}
-                    template={resume.template}
+                    updatedAt={new Date(resume.updatedAt).toLocaleDateString()}
+                    template={resume.templateId}
                   />
                 ) : (
                   <div
@@ -141,7 +137,7 @@ export default function DocumentsPage() {
                         {resume.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {resume.template} • Updated {resume.updatedAt}
+                        {resume.templateId} • Updated {new Date(resume.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
                     <Button variant="outline" size="sm" asChild>

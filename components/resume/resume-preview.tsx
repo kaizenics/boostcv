@@ -332,6 +332,7 @@ export function ResumePreview({
                       <div>
                         <p className="font-semibold text-zinc-800">{exp.jobTitle || 'Job Title'}</p>
                         <p className="text-zinc-600">{exp.employer || 'Company'}</p>
+                        {exp.location && <p className="text-zinc-500 text-sm">{exp.location}</p>}
                       </div>
                       <p className="text-zinc-500 text-sm">
                         {exp.startDate} – {exp.isCurrentJob ? 'Present' : exp.endDate}
@@ -391,6 +392,34 @@ export function ResumePreview({
                 {data.finalize.languages.map((lang) => (
                   <p key={lang.id} className="text-zinc-600">
                     {lang.name} – <span className="text-zinc-500">{lang.proficiency}</span>
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Certifications */}
+          {data.finalize.certifications.length > 0 && (
+            <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
+              <SectionHeader title="Certifications" layout="modern" color={activeColor} spacing={designOptions.paragraphSpacing} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {data.finalize.certifications.map((cert) => (
+                  <p key={cert.id} className="text-zinc-600 text-sm">
+                    {cert.name} – {cert.issuer} ({cert.date})
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Websites/Links */}
+          {data.finalize.websites.length > 0 && (
+            <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
+              <SectionHeader title="Links" layout="modern" color={activeColor} spacing={designOptions.paragraphSpacing} />
+              <div className="space-y-1">
+                {data.finalize.websites.map((site) => (
+                  <p key={site.id} className="text-zinc-600 text-sm">
+                    {site.label}: <span style={{ color: activeColor }}>{site.url}</span>
                   </p>
                 ))}
               </div>
@@ -492,6 +521,7 @@ export function ResumePreview({
                     <div>
                       <p className="font-semibold" style={{ color: activeColor }}>{exp.jobTitle}</p>
                       <p className="text-zinc-600">{exp.employer}</p>
+                      {exp.location && <p className="text-zinc-500 text-sm">{exp.location}</p>}
                     </div>
                     <p className="text-zinc-500 text-sm">
                       {exp.startDate} – {exp.isCurrentJob ? 'Present' : exp.endDate}
@@ -521,6 +551,9 @@ export function ResumePreview({
             </div>
           </div>
         )}
+
+        {/* Additional Sections */}
+        {renderAdditionalSections('sidebar')}
       </div>
     </div>
   );
@@ -578,6 +611,7 @@ export function ResumePreview({
                     <div>
                       <p className="font-bold text-zinc-800">{exp.jobTitle}</p>
                       <p className="font-semibold" style={{ color: activeColor }}>{exp.employer}</p>
+                      {exp.location && <p className="text-zinc-500 text-sm">{exp.location}</p>}
                     </div>
                     <p className="text-zinc-500 text-sm">
                       {exp.startDate} – {exp.isCurrentJob ? 'Present' : exp.endDate}
@@ -625,6 +659,9 @@ export function ResumePreview({
             </div>
           </div>
         )}
+
+        {/* Additional Sections */}
+        {renderAdditionalSections('bold')}
       </div>
     </div>
   );

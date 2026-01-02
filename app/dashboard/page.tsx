@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState } from "react";
 import { FileText, Download, Eye, Clock, Plus } from "lucide-react";
 import { CreateResumeCard } from "@/components/dashboard/create-resume-card";
 import { ResumeCard } from "@/components/dashboard/resume-card";
@@ -9,26 +8,27 @@ import { StatsCard } from "@/components/dashboard/stats-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { TipsCard } from "@/components/dashboard/tips-card";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { trpc } from "@/trpc/client";
 import Link from "next/link";
 
-// Mock data - replace with real data from your database
-const mockResumes: Array<{
-  id: string;
-  title: string;
-  updatedAt: string;
-  template: string;
-}> = [];
-
-// Example with resumes:
-// const mockResumes = [
-//   { id: "1", title: "Software Engineer Resume", updatedAt: "2 hours ago", template: "Professional" },
-//   { id: "2", title: "Product Manager CV", updatedAt: "Yesterday", template: "Modern" },
-//   { id: "3", title: "Marketing Specialist", updatedAt: "3 days ago", template: "Creative" },
-// ];
-
 export default function Dashboard() {
-  const [resumes] = useState(mockResumes);
+  // Replace mock data with real tRPC query
+  const { data: resumes = [], isLoading } = trpc.resume.list.useQuery();
+  const { data: stats } = trpc.user.stats.useQuery();
+  
   const hasResumes = resumes.length > 0;
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Spinner className="h-8 w-8 mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your resumes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -44,14 +44,6 @@ export default function Dashboard() {
               : "Get started by creating your first resume."}
           </p>
         </div>
-        {hasResumes && (
-          <Button asChild>
-            <Link href="/resume/templates">
-              <Plus className="h-4 w-4" />
-              New Resume
-            </Link>
-          </Button>
-        )}
       </div>
 
       {/* Stats - Only show if user has resumes */}
@@ -59,29 +51,27 @@ export default function Dashboard() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Total Resumes"
-            value={resumes.length}
+            value={stats?.totalResumes ?? resumes.length}
             description="Documents created"
             icon={FileText}
           />
           <StatsCard
-            title="Downloads"
-            value={12}
-            description="All time"
+            title="Completed"
+            value={stats?.completedResumes ?? 0}
+            description="Ready to use"
             icon={Download}
-            trend={{ value: 15, isPositive: true }}
           />
           <StatsCard
-            title="Views"
-            value={48}
-            description="Resume views"
-            icon={Eye}
-            trend={{ value: 8, isPositive: true }}
+            title="Drafts"
+            value={stats?.draftResumes ?? 0}
+            description="In progress"
+            icon={Clock}
           />
           <StatsCard
             title="Last Activity"
-            value="2h ago"
+            value={resumes[0] ? new Date(resumes[0].updatedAt).toLocaleDateString() : "N/A"}
             description="Recent update"
-            icon={Clock}
+            icon={Eye}
           />
         </div>
       )}
@@ -115,8 +105,8 @@ export default function Dashboard() {
                 key={resume.id}
                 id={resume.id}
                 title={resume.title}
-                updatedAt={resume.updatedAt}
-                template={resume.template}
+                updatedAt={new Date(resume.updatedAt).toLocaleDateString()}
+                template={resume.templateId}
               />
             ))}
           </div>
