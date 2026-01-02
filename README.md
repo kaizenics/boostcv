@@ -16,7 +16,6 @@ A modern, minimalist resume builder application that helps users create professi
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS v4
 - **UI Components:** shadcn/ui
-- **Animations:** Motion (Framer Motion v11+)
 - **ORM:** Drizzle ORM
 - **Database:** TursoDB
 - **Authentication:** Better Auth
@@ -59,8 +58,4 @@ npm run dev
 ## 📄 License
 
 This project is private and proprietary.
-
----
-
-Built with ❤️ using Next.js and Tailwind CSS
 
