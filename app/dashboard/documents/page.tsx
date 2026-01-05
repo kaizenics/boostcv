@@ -1,34 +1,78 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Search, Filter, Grid, List, Plus, SortAsc } from "lucide-react";
+import { FileText, Search, Filter, Grid, List, Plus, SortAsc, Check } from "lucide-react";
 import { CreateResumeCard } from "@/components/dashboard/create-resume-card";
 import { ResumeCard } from "@/components/dashboard/resume-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "grid" | "list";
+type FilterType = "all" | "draft" | "completed";
+type SortType = "date-desc" | "date-asc" | "name-asc" | "name-desc";
 
 export default function DocumentsPage() {
   // Replace mock data with real tRPC query
   const { data: resumes = [], isLoading } = trpc.resume.list.useQuery();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [filterType, setFilterType] = useState<FilterType>("all");
+  const [sortType, setSortType] = useState<SortType>("date-desc");
   const hasResumes = resumes.length > 0;
 
-  const filteredResumes = resumes.filter((resume) =>
-    resume.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Apply filters and sorting
+  const filteredResumes = resumes
+    .filter((resume) => {
+      // Search filter
+      const matchesSearch = resume.title.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Status filter
+      const matchesFilter = 
+        filterType === "all" ? true :
+        filterType === "draft" ? resume.status === "draft" :
+        filterType === "completed" ? resume.status === "completed" :
+        true;
+      
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      // Sorting
+      switch (sortType) {
+        case "date-desc":
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        case "date-asc":
+          return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        case "name-asc":
+          return a.title.localeCompare(b.title);
+        case "name-desc":
+          return b.title.localeCompare(a.title);
+        default:
+          return 0;
+      }
+    });
   
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Spinner className="h-8 w-8 mx-auto mb-4" />
+          <Image 
+            src="/cv.gif" 
+            alt="Loading" 
+            width={80} 
+            height={80} 
+            className="mx-auto mb-4"
+            unoptimized
+          />
           <p className="text-muted-foreground">Loading your documents...</p>
         </div>
       </div>
@@ -68,14 +112,61 @@ export default function DocumentsPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-            <Button variant="outline" size="sm">
-              <SortAsc className="h-4 w-4" />
-              Sort
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter
+                  {filterType !== "all" && (
+                    <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                      {filterType === "draft" ? "Draft" : "Completed"}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={() => setFilterType("all")}>
+                  <span className="flex-1">All</span>
+                  {filterType === "all" && <Check className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterType("draft")}>
+                  <span className="flex-1">Draft</span>
+                  {filterType === "draft" && <Check className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterType("completed")}>
+                  <span className="flex-1">Completed</span>
+                  {filterType === "completed" && <Check className="h-4 w-4" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <SortAsc className="h-4 w-4 mr-2" />
+                  Sort
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setSortType("date-desc")}>
+                  <span className="flex-1">Newest First</span>
+                  {sortType === "date-desc" && <Check className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortType("date-asc")}>
+                  <span className="flex-1">Oldest First</span>
+                  {sortType === "date-asc" && <Check className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortType("name-asc")}>
+                  <span className="flex-1">Name (A-Z)</span>
+                  {sortType === "name-asc" && <Check className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortType("name-desc")}>
+                  <span className="flex-1">Name (Z-A)</span>
+                  {sortType === "name-desc" && <Check className="h-4 w-4" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <div className="flex items-center rounded-lg border border-border p-1">
               <Button
                 variant="ghost"

@@ -7,10 +7,9 @@ import { ResumeCard } from "@/components/dashboard/resume-card";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { TipsCard } from "@/components/dashboard/tips-card";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Dashboard() {
   // Replace mock data with real tRPC query
@@ -23,7 +22,14 @@ export default function Dashboard() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Spinner className="h-8 w-8 mx-auto mb-4" />
+          <Image 
+            src="/cv.gif" 
+            alt="Loading" 
+            width={80} 
+            height={80} 
+            className="mx-auto mb-4"
+            unoptimized
+          />
           <p className="text-muted-foreground">Loading your resumes...</p>
         </div>
       </div>

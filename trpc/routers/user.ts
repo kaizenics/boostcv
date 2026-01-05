@@ -4,7 +4,7 @@ import {
   createTRPCRouter,
   protectedProcedure,
 } from "../init";
-import { users } from "@/db/schema";
+import { users, accounts, sessions, resumes } from "@/db/schema";
 
 /**
  * User Router
@@ -20,6 +20,19 @@ export const userRouter = createTRPCRouter({
     });
 
     return user ?? null;
+  }),
+
+  /**
+   * Get user's OAuth providers
+   */
+  getProviders: protectedProcedure.query(async ({ ctx }) => {
+    const userAccounts = await ctx.db.query.accounts.findMany({
+      where: eq(accounts.userId, ctx.user.id),
+    });
+
+    return userAccounts.map((account) => ({
+      providerId: account.providerId,
+    }));
   }),
 
   /**
@@ -43,5 +56,28 @@ export const userRouter = createTRPCRouter({
       completedResumes,
       draftResumes,
     };
+  }),
+
+  /**
+   * Delete user account and all associated data
+   */
+  deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
+    // Delete user's resumes first (cascade should handle this, but being explicit)
+    await ctx.db.delete(resumes).where(
+      eq(resumes.userId, ctx.user.id)
+    );
+
+    // Delete user's accounts (OAuth connections)
+    await ctx.db.delete(accounts).where(eq(accounts.userId, ctx.user.id));
+
+    // Delete user's sessions
+    await ctx.db.delete(sessions).where(
+      eq(sessions.userId, ctx.user.id)
+    );
+
+    // Finally, delete the user
+    await ctx.db.delete(users).where(eq(users.id, ctx.user.id));
+
+    return { success: true };
   }),
 });
