@@ -8,8 +8,6 @@ import {
   FileText,
   Settings,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   Menu,
   X,
 } from "lucide-react";
@@ -38,7 +36,6 @@ const sidebarItems = [
 export function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Close mobile menu on route change
@@ -66,17 +63,10 @@ export function DashboardSidebar() {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-border px-4">
-        {(!collapsed || isMobile) && (
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/boostcv.png" alt="logo" width={30} height={30} />
-            <span className="text-lg font-bold">BoostCV</span>
-          </Link>
-        )}
-        {collapsed && !isMobile && (
-          <div className="flex h-8 w-8 items-center justify-center">
-            <img src="/boostcv.png" alt="logo" width={30} height={30} />
-          </div>
-        )}
+        <Link href="/" className="flex items-center gap-2">
+          <img src="/boostcv.png" alt="logo" width={30} height={30} />
+          <span className="text-lg font-bold">BoostCV</span>
+        </Link>
         {isMobile && (
           <Button
             variant="ghost"
@@ -105,45 +95,22 @@ export function DashboardSidebar() {
               )}
             >
               <item.icon className="h-5 w-5 shrink-0" />
-              {(!collapsed || isMobile) && <span>{item.name}</span>}
+              <span>{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-border p-3 space-y-2">
-        {!isMobile && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCollapsed(!collapsed)}
-            className={cn(
-              "w-full justify-start gap-3",
-              collapsed && "justify-center px-0"
-            )}
-          >
-            {collapsed ? (
-              <ChevronRight className="h-5 w-5" />
-            ) : (
-              <>
-                <ChevronLeft className="h-5 w-5" />
-                <span>Collapse</span>
-              </>
-            )}
-          </Button>
-        )}
+      <div className="border-t border-border p-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={handleLogout}
-          className={cn(
-            "w-full justify-start gap-3 text-muted-foreground hover:text-foreground",
-            collapsed && !isMobile && "justify-center px-0"
-          )}
+          className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
         >
           <LogOut className="h-5 w-5" />
-          {(!collapsed || isMobile) && <span>Sign Out</span>}
+          <span>Sign Out</span>
         </Button>
       </div>
     </div>
@@ -180,12 +147,7 @@ export function DashboardSidebar() {
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 z-40 hidden h-screen border-r border-border bg-sidebar transition-all duration-300 lg:block",
-          collapsed ? "w-16" : "w-64"
-        )}
-      >
+      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r border-border bg-sidebar lg:block">
         <SidebarContent />
       </aside>
     </>

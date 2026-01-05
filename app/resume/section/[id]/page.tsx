@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { trpc } from "@/trpc/client";
+import Image from "next/image";
 import {
   Sheet,
   SheetContent,
@@ -99,7 +99,14 @@ export default function ResumeSectionDynamicPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Spinner className="h-8 w-8 mx-auto mb-4" />
+          <Image 
+            src="/cv.gif" 
+            alt="Loading" 
+            width={80} 
+            height={80} 
+            className="mx-auto mb-4"
+            unoptimized
+          />
           <p className="text-muted-foreground">Loading your resume...</p>
         </div>
       </div>
