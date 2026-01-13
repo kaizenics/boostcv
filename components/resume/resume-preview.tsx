@@ -123,10 +123,12 @@ interface ResumePreviewProps {
   data: ResumeData;
   className?: string;
   designOptions?: DesignOptions;
+  customColor?: string;
   showScore?: boolean;
   showPhoto?: boolean;
   currentPage?: number;
   onPageChange?: (page: number) => void;
+  renderAllPages?: boolean; // For PDF export - renders all pages at once
 }
 
 export function ResumePreview({ 
@@ -137,7 +139,8 @@ export function ResumePreview({
   showScore = true,
   showPhoto = false,
   currentPage: controlledPage,
-  onPageChange
+  onPageChange,
+  renderAllPages = false
 }: ResumePreviewProps) {
   const template = resumeTemplates.find((t) => t.id === data.templateId) || resumeTemplates[0];
   const [internalPage, setInternalPage] = useState(1);
@@ -156,12 +159,16 @@ export function ResumePreview({
   };
   
   // Calculate if we need multiple pages based on content
+  // Note: Actual page count will be determined by content height, but we estimate
   const hasSecondPageContent = 
     data.finalize.references.length > 0 ||
     data.finalize.hobbies.length > 0 ||
     data.finalize.awards.length > 0 ||
     data.finalize.customSections.length > 0;
   
+  // Estimate total pages - content will naturally flow and fill pages
+  // We'll show at least 1 page, and 2 if there's additional content
+  // The actual split will happen naturally at 297mm boundaries
   const totalPages = hasSecondPageContent ? 2 : 1;
   const layout = template.layout || 'classic';
 
@@ -1030,27 +1037,18 @@ export function ResumePreview({
     </>
   );
 
-  // Render page 2 content
+  // Render page 2 content (additional sections)
+  // When renderAllPages is true (PDF export), we render without min-height for continuous flow
   const renderPage2Content = () => (
     <div
-      className="p-8 min-h-150"
+      className={cn('p-8', !renderAllPages && 'min-h-150')}
       style={{ 
-        borderTop: layout === 'classic' ? `4px solid ${activeColor}` : undefined,
+        borderTop: layout === 'classic' && !renderAllPages ? `4px solid ${activeColor}` : undefined,
         backgroundColor: layout === 'sidebar' ? undefined : 'white',
         fontSize: `${designOptions.fontSize}px`,
         lineHeight: designOptions.lineSpacing
       }}
     >
-      {/* Header - Repeated on second page */}
-      <div className="text-center" style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
-        <h1
-          className="text-2xl font-bold uppercase tracking-wide"
-          style={{ color: activeColor }}
-        >
-          {data.contact.firstName || 'YOUR'} {data.contact.lastName || 'NAME'}
-        </h1>
-        <p className="text-gray-500 mt-1">Page 2</p>
-      </div>
 
       {/* Awards & Honors */}
       {data.finalize.awards.length > 0 && (
@@ -1111,7 +1109,19 @@ export function ResumePreview({
   );
 
   return (
-    <div className={cn('bg-white shadow-xl rounded-lg overflow-hidden flex flex-col', className)} style={{ fontFamily: designOptions.fontFamily }}>
+    <div 
+      data-resume-preview 
+      className={cn('bg-white shadow-xl rounded-lg overflow-hidden flex flex-col', className)} 
+      style={{ 
+        fontFamily: designOptions.fontFamily,
+        // Set A4 width for preview (210mm)
+        width: renderAllPages ? 'auto' : '210mm',
+        maxWidth: renderAllPages ? 'none' : '210mm',
+        // Don't constrain height in preview - let pages stack naturally
+        height: renderAllPages ? 'auto' : 'auto',
+        minHeight: renderAllPages ? 'auto' : undefined
+      }}
+    >
       {/* Resume Score Header */}
       {showScore && (
         <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-b">
@@ -1124,12 +1134,130 @@ export function ResumePreview({
         </div>
       )}
 
-      {/* Resume Content - Page 1 */}
-      <div className="flex-1 overflow-auto">
-        {currentPage === 1 && renderResumeContent()}
+      {/* Resume Content */}
+      <div 
+        className={cn('flex-1', renderAllPages ? 'overflow-visible' : 'overflow-hidden')}
+        style={{
+          // For preview mode: clip to A4 height per page, for PDF: let it flow
+          height: renderAllPages ? 'auto' : '297mm',
+          maxHeight: renderAllPages ? 'none' : '297mm',
+          position: renderAllPages ? 'relative' : 'relative'
+        }}
+      >
+        {/* Render all content continuously - both for PDF and preview */}
+        {/* For preview, we'll clip and transform to show the appropriate page portion */}
+        <div 
+          data-pdf-content
+          style={{
+            // For preview mode: use transform to scroll to the correct page
+            transform: !renderAllPages ? `translateY(-${(currentPage - 1) * 297}mm)` : 'none',
+            transition: !renderAllPages ? 'transform 0.3s ease' : 'none',
+            height: renderAllPages ? 'auto' : 'auto',
+            minHeight: renderAllPages ? 'auto' : `${Math.ceil((hasSecondPageContent ? 2 : 1)) * 297}mm`,
+            position: renderAllPages ? 'relative' : 'relative',
+            width: '100%'
+          }}
+        >
+          {renderResumeContent()}
+          {/* Always render additional sections if they exist - let natural page break handle splitting */}
+          {(data.finalize.awards.length > 0 || 
+            data.finalize.references.length > 0 || 
+            data.finalize.hobbies.length > 0 || 
+            data.finalize.customSections.length > 0) && (
+            <div 
+              className="px-8 pb-8"
+              style={{ 
+                backgroundColor: 'white',
+                fontSize: `${designOptions.fontSize}px`,
+                lineHeight: designOptions.lineSpacing,
+                marginTop: 0, // Ensure no gap between main content and additional sections
+                paddingTop: 0 // No top padding since it flows directly after main content
+              }}
+            >
+              {/* Awards & Honors */}
+              {data.finalize.awards.length > 0 && (
+                <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
+                  <SectionHeader title="Awards & Honors" layout={layout} color={activeColor} spacing={designOptions.paragraphSpacing} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {data.finalize.awards.map((award) => (
+                      <p key={award.id}>
+                        {award.title} – {award.issuer} ({award.date})
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        {/* Resume Content - Page 2 */}
-        {currentPage === 2 && hasSecondPageContent && renderPage2Content()}
+              {/* References */}
+              {data.finalize.references.length > 0 && (
+                <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
+                  <SectionHeader title="References" layout={layout} color={activeColor} spacing={designOptions.paragraphSpacing} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: `${designOptions.paragraphSpacing}px` }}>
+                    {data.finalize.references.map((ref) => (
+                      <div key={ref.id}>
+                        <p className="font-semibold">{ref.name}</p>
+                        <p className="text-gray-600">
+                          {ref.position}{ref.company ? `, ${ref.company}` : ''}
+                        </p>
+                        <p className="text-gray-500">
+                          {ref.email} {ref.phone && `| ${ref.phone}`}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hobbies & Interests */}
+              {data.finalize.hobbies.length > 0 && (
+                <div style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
+                  <SectionHeader title="Hobbies & Interests" layout={layout} color={activeColor} spacing={designOptions.paragraphSpacing} />
+                  <div className="flex flex-wrap gap-2">
+                    {data.finalize.hobbies.map((hobby) => (
+                      <span key={hobby.id} className="bg-gray-100 px-2 py-1 rounded">
+                        {hobby.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Sections */}
+              {data.finalize.customSections.map((section) => (
+                <div key={section.id} style={{ marginBottom: `${designOptions.sectionSpacing}px` }}>
+                  <SectionHeader title={section.sectionName} layout={layout} color={activeColor} spacing={designOptions.paragraphSpacing} />
+                  <p className="text-gray-600">{section.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Page break indicators for preview mode */}
+        {!renderAllPages && (
+          <>
+            {/* Page 1 break line */}
+            <div 
+              className="absolute left-0 right-0 h-0.5 bg-gray-400 pointer-events-none"
+              style={{ 
+                top: '297mm',
+                zIndex: 10,
+                boxShadow: '0 -2px 4px rgba(0,0,0,0.1)',
+                display: currentPage === 1 ? 'block' : 'none'
+              }}
+            />
+            {/* Page 2 break line (if content extends beyond 2 pages) */}
+            <div 
+              className="absolute left-0 right-0 h-0.5 bg-gray-400 pointer-events-none"
+              style={{ 
+                top: '594mm',
+                zIndex: 10,
+                boxShadow: '0 -2px 4px rgba(0,0,0,0.1)',
+                display: currentPage === 2 ? 'block' : 'none'
+              }}
+            />
+          </>
+        )}
       </div>
 
       {/* Footer with Pagination */}

@@ -1,371 +1,374 @@
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { ResumeData } from '@/lib/types/resume';
 import { DesignOptions } from './styles';
+import { ResumeTemplate } from '@/lib/types/resume';
 
 interface PDFGeneratorOptions {
   data: ResumeData;
-  template: { primaryColor: string; name: string; layout?: string };
+  template: ResumeTemplate;
   fileName: string;
   designOptions: DesignOptions;
+  customColor?: string;
 }
 
-// Helper function to convert any color format to hex
-function convertToSafeColor(color: string): string {
-  if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
-    return color;
-  }
-  
-  const temp = document.createElement('div');
-  temp.style.color = color;
-  document.body.appendChild(temp);
-  
-  const computed = window.getComputedStyle(temp).color;
-  document.body.removeChild(temp);
-  
-  const match = computed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (match) {
-    const r = parseInt(match[1]);
-    const g = parseInt(match[2]);
-    const b = parseInt(match[3]);
-    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-  }
-  
-  return '#2563eb';
+// Check if a color value uses modern CSS color functions that html2canvas doesn't support
+function isModernColorFunction(value: string): boolean {
+  if (!value) return false;
+  const lower = value.toLowerCase();
+  return lower.includes('lab(') || 
+         lower.includes('lch(') || 
+         lower.includes('oklch(') || 
+         lower.includes('oklab(');
 }
 
-// Convert hex to RGB for jsPDF
-function hexToRgb(hex: string) {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : { r: 37, g: 99, b: 235 };
-}
-
-export async function generatePDF({ data, template, fileName, designOptions }: PDFGeneratorOptions) {
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  const safeColor = convertToSafeColor(template.primaryColor);
-  const primaryRgb = hexToRgb(safeColor);
-  const layout = template.layout || 'classic';
-  const isHarvard = layout === 'harvard';
-  
-  // Page configuration
-  const margin = 15;
-  const pageWidth = 210;
-  const pageHeight = 297;
-  const contentWidth = pageWidth - 2 * margin;
-  let yPosition = margin;
-
-  // Helper function to add text with word wrap
-  const addText = (text: string, x: number, y: number, maxWidth: number, fontSize: number = 10, isBold: boolean = false) => {
-    doc.setFontSize(fontSize);
-    doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-    const lines = doc.splitTextToSize(text, maxWidth);
-    doc.text(lines, x, y);
-    return lines.length * (fontSize * 0.35);
-  };
-
-  // Check if new page needed
-  const checkNewPage = (requiredSpace: number = 40) => {
-    if (yPosition > pageHeight - requiredSpace) {
-      doc.addPage();
-      yPosition = margin;
-    }
-  };
-
-  // Render header
-  renderHeader(doc, data, primaryRgb, pageWidth, yPosition);
-  yPosition += calculateHeaderHeight(data);
-
-  // Render sections based on layout
-  if (!isHarvard && data.summary) {
-    checkNewPage();
-    yPosition = renderSummary(doc, data.summary, margin, yPosition, contentWidth, primaryRgb, addText);
-  }
-
-  if (isHarvard && data.educations.length > 0) {
-    checkNewPage();
-    yPosition = renderEducation(doc, data.educations, margin, yPosition, contentWidth, pageWidth, primaryRgb, addText, isHarvard, checkNewPage);
-  }
-
-  if (data.experiences.length > 0) {
-    checkNewPage();
-    yPosition = renderExperience(doc, data.experiences, margin, yPosition, contentWidth, pageWidth, primaryRgb, addText, isHarvard, checkNewPage);
-  }
-
-  if (!isHarvard && data.educations.length > 0) {
-    checkNewPage();
-    yPosition = renderEducation(doc, data.educations, margin, yPosition, contentWidth, pageWidth, primaryRgb, addText, isHarvard, checkNewPage);
-  }
-
-  if (data.skills.length > 0) {
-    checkNewPage();
-    yPosition = renderSkills(doc, data.skills, margin, yPosition, contentWidth, primaryRgb, addText, isHarvard);
-  }
-
-  if (data.finalize.languages.length > 0) {
-    checkNewPage();
-    yPosition = renderLanguages(doc, data.finalize.languages, margin, yPosition, contentWidth, primaryRgb, addText);
-  }
-
-  if (data.finalize.certifications.length > 0) {
-    checkNewPage();
-    yPosition = renderCertifications(doc, data.finalize.certifications, margin, yPosition, primaryRgb, checkNewPage);
-  }
-
-  if (data.finalize.awards.length > 0) {
-    checkNewPage();
-    yPosition = renderAwards(doc, data.finalize.awards, margin, yPosition, primaryRgb, checkNewPage);
-  }
-
-  if (data.finalize.websites.length > 0) {
-    checkNewPage();
-    yPosition = renderWebsites(doc, data.finalize.websites, margin, yPosition, contentWidth, primaryRgb, addText);
-  }
-
-  if (data.finalize.references.length > 0) {
-    checkNewPage();
-    yPosition = renderReferences(doc, data.finalize.references, margin, yPosition, pageWidth, primaryRgb, checkNewPage);
-  }
-
-  if (data.finalize.hobbies.length > 0) {
-    checkNewPage();
-    yPosition = renderHobbies(doc, data.finalize.hobbies, margin, yPosition, contentWidth, primaryRgb, addText);
-  }
-
-  data.finalize.customSections.forEach(section => {
-    checkNewPage();
-    yPosition = renderCustomSection(doc, section, margin, yPosition, contentWidth, primaryRgb, addText);
-  });
-
-  // Save the PDF
-  doc.save(`${fileName}.pdf`);
-}
-
-function calculateHeaderHeight(data: ResumeData): number {
-  let height = 8; // Name
-  if (data.contact.desiredJobTitle) height += 6;
-  height += 10; // Contact info
-  return height;
-}
-
-function renderHeader(doc: jsPDF, data: ResumeData, primaryRgb: { r: number; g: number; b: number }, pageWidth: number, yPosition: number) {
-  doc.setFontSize(24);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
-  const name = `${data.contact.firstName || 'Your'} ${data.contact.lastName || 'Name'}`.toUpperCase();
-  doc.text(name, pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 8;
-
-  if (data.contact.desiredJobTitle) {
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text(data.contact.desiredJobTitle, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 6;
-  }
-
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  const contactInfo = [data.contact.email, data.contact.phone].filter(Boolean).join(' | ');
-  doc.text(contactInfo, pageWidth / 2, yPosition, { align: 'center' });
-}
-
-function renderSectionHeader(doc: jsPDF, title: string, margin: number, pageWidth: number, yPosition: number, primaryRgb: { r: number; g: number; b: number }): number {
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
-  doc.text(title.toUpperCase(), margin, yPosition);
-  doc.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
-  doc.setLineWidth(0.5);
-  doc.line(margin, yPosition + 1, pageWidth - margin, yPosition + 1);
-  return yPosition + 8;
-}
-
-function renderSummary(doc: jsPDF, summary: string, margin: number, yPosition: number, contentWidth: number, primaryRgb: { r: number; g: number; b: number }, addText: Function): number {
-  yPosition = renderSectionHeader(doc, 'Professional Summary', margin, 210, yPosition, primaryRgb);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(60, 60, 60);
-  const summaryHeight = addText(summary, margin, yPosition, contentWidth, 10);
-  return yPosition + summaryHeight + 6;
-}
-
-function renderEducation(doc: jsPDF, educations: ResumeData['educations'], margin: number, yPosition: number, contentWidth: number, pageWidth: number, primaryRgb: { r: number; g: number; b: number }, addText: Function, isHarvard: boolean, checkNewPage: Function): number {
-  yPosition = renderSectionHeader(doc, 'Education', margin, pageWidth, yPosition, primaryRgb);
-  
-  educations.forEach(edu => {
-    checkNewPage(40);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text(isHarvard ? edu.schoolName : edu.degree, margin, yPosition);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text(`${edu.startDate} - ${edu.endDate}`, pageWidth - margin, yPosition, { align: 'right' });
-    yPosition += 5;
+// Convert modern color format to RGB using browser's native conversion
+function convertToRgb(doc: Document, value: string, fallback: string): string {
+  try {
+    const temp = doc.createElement('div');
+    temp.style.color = value;
+    temp.style.position = 'absolute';
+    temp.style.left = '-10000px';
+    temp.style.visibility = 'hidden';
+    doc.body.appendChild(temp);
     
-    if (isHarvard) {
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'italic');
-      doc.text(edu.degree, margin, yPosition);
-      yPosition += 5;
+    const win = doc.defaultView || window;
+    const computed = win.getComputedStyle(temp).color;
+    doc.body.removeChild(temp);
+    
+    // Check if conversion was successful (should be rgb/rgba format)
+    if (computed && !isModernColorFunction(computed)) {
+      return computed;
+    }
+  } catch (e) {
+    // Fall through to fallback
+  }
+  return fallback;
+}
+
+// Convert all modern color functions in an element's styles to RGB
+function normalizeElementColors(doc: Document, el: HTMLElement) {
+  const win = doc.defaultView || window;
+  
+  try {
+    const computed = win.getComputedStyle(el);
+    
+    // CSS color properties that might contain modern color functions
+    const colorProps = [
+      { css: 'background-color', fallback: 'transparent' },
+      { css: 'color', fallback: '#000000' },
+      { css: 'border-color', fallback: 'transparent' },
+      { css: 'border-top-color', fallback: 'transparent' },
+      { css: 'border-bottom-color', fallback: 'transparent' },
+      { css: 'border-left-color', fallback: 'transparent' },
+      { css: 'border-right-color', fallback: 'transparent' },
+      { css: 'outline-color', fallback: 'transparent' },
+      { css: 'box-shadow', fallback: 'none' },
+      { css: 'text-decoration-color', fallback: 'currentcolor' },
+    ];
+    
+    colorProps.forEach(({ css, fallback }) => {
+      try {
+        const value = computed.getPropertyValue(css);
+        if (isModernColorFunction(value)) {
+          const rgbValue = convertToRgb(doc, value, fallback);
+          el.style.setProperty(css, rgbValue, 'important');
+        }
+      } catch (e) {
+        // Skip this property
+      }
+    });
+  } catch (e) {
+    // Skip this element
+  }
+}
+
+export async function generatePDF({ 
+  data, 
+  template, 
+  fileName, 
+  designOptions,
+  customColor 
+}: PDFGeneratorOptions) {
+  // Find the resume preview element in the DOM
+  // Try to find the one with renderAllPages first (hidden PDF preview), otherwise use any
+  let resumeElement = document.querySelector('[data-resume-preview] [data-pdf-content]')?.closest('[data-resume-preview]') as HTMLElement;
+  
+  if (!resumeElement) {
+    // Fallback to any resume preview element
+    resumeElement = document.querySelector('[data-resume-preview]') as HTMLElement;
+  }
+  
+  if (!resumeElement) {
+    throw new Error('Resume preview element not found. Please ensure the resume is rendered on the page.');
+  }
+  
+  // Verify that page 2 content exists
+  const hasPage2Content = resumeElement.querySelector('[data-pdf-content]') !== null;
+  console.log(`[PDF Generator] Found resume element, has page 2 content: ${hasPage2Content}`);
+  
+  // Clone the current element
+  const clonedElement = resumeElement.cloneNode(true) as HTMLElement;
+
+  // Create a temporary container with proper dimensions for PDF
+  const tempContainer = document.createElement('div');
+  tempContainer.style.position = 'fixed';
+  tempContainer.style.top = '-10000px'; // Render off-screen for speed
+  tempContainer.style.left = '0';
+  tempContainer.style.width = '210mm';
+  tempContainer.style.height = 'auto';
+  tempContainer.style.backgroundColor = 'white';
+  tempContainer.style.overflow = 'visible';
+  document.body.appendChild(tempContainer);
+
+  // Set proper dimensions for PDF (A4: 210mm x 297mm)
+  clonedElement.style.width = '210mm';
+  clonedElement.style.maxWidth = '210mm';
+  clonedElement.style.minHeight = 'auto';
+  clonedElement.style.backgroundColor = '#ffffff';
+  clonedElement.style.boxShadow = 'none';
+  clonedElement.style.borderRadius = '0';
+  clonedElement.style.overflow = 'visible'; // CRITICAL: Remove overflow-hidden to capture full height
+  clonedElement.style.height = 'auto'; // Let it grow to full content height
+  
+  // Ensure content container is visible and shows all content
+  const contentContainer = clonedElement.querySelector('.flex-1.overflow-auto') as HTMLElement;
+  if (contentContainer) {
+    contentContainer.style.overflow = 'visible';
+    contentContainer.style.display = 'block';
+    contentContainer.style.height = 'auto'; // Let it grow to full content
+    contentContainer.style.maxHeight = 'none'; // Remove any max-height restrictions
+    
+    // Make all children visible (this will show both pages if they're conditionally rendered)
+    Array.from(contentContainer.children).forEach((child: Element) => {
+      const htmlChild = child as HTMLElement;
+      htmlChild.style.display = 'block';
+      htmlChild.style.visibility = 'visible';
+      htmlChild.style.opacity = '1';
+      htmlChild.style.height = 'auto';
+      htmlChild.style.overflow = 'visible';
+    });
+  }
+  
+  // Also ensure the PDF content wrapper is fully visible
+  const pdfContent = clonedElement.querySelector('[data-pdf-content]') as HTMLElement;
+  if (pdfContent) {
+    pdfContent.style.display = 'block';
+    pdfContent.style.visibility = 'visible';
+    pdfContent.style.height = 'auto';
+    pdfContent.style.overflow = 'visible';
+    
+    // Debug: Check if additional sections are present
+    const hasAwards = pdfContent.textContent?.includes('Awards') || pdfContent.textContent?.includes('AWARDS');
+    const hasReferences = pdfContent.textContent?.includes('References') || pdfContent.textContent?.includes('REFERENCES');
+    const hasHobbies = pdfContent.textContent?.includes('Hobbies') || pdfContent.textContent?.includes('HOBBIES');
+    console.log(`[PDF Generator] Content check - Awards: ${hasAwards}, References: ${hasReferences}, Hobbies: ${hasHobbies}`);
+    console.log(`[PDF Generator] PDF content text length: ${pdfContent.textContent?.length || 0} chars`);
+  } else {
+    console.warn('[PDF Generator] [data-pdf-content] element not found in cloned element!');
+  }
+  
+  // Remove any interactive elements, buttons, pagination, etc.
+  clonedElement.querySelectorAll('button, input, select, [data-pagination], [data-score]').forEach(el => {
+    el.remove();
+  });
+  
+  // Remove footer with pagination if it exists
+  clonedElement.querySelectorAll('.bg-gray-50').forEach(el => el.remove());
+  
+  tempContainer.appendChild(clonedElement);
+
+  // CRITICAL: Force a layout recalculation to ensure all content is rendered
+  // This is especially important for capturing page 2 content
+  void clonedElement.offsetHeight; // Force reflow
+  void tempContainer.offsetHeight; // Force reflow
+  
+  // Wait for all content to be rendered, especially page 2
+  let retries = 0;
+  const maxRetries = 5;
+  while (retries < maxRetries) {
+    const pdfContent = clonedElement.querySelector('[data-pdf-content]');
+    const scrollHeight = clonedElement.scrollHeight;
+    const offsetHeight = clonedElement.offsetHeight;
+    
+    // Wait a bit for React to finish rendering
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // Check if height has stabilized (content fully rendered)
+    const newScrollHeight = clonedElement.scrollHeight;
+    if (newScrollHeight === scrollHeight && pdfContent) {
+      console.log(`[PDF Generator] Content stabilized after ${retries + 1} retries. Height: ${scrollHeight}px`);
+      break;
     }
     
-    if (edu.location) {
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(120, 120, 120);
-      doc.text(isHarvard ? edu.location : `${edu.schoolName}, ${edu.location}`, margin, yPosition);
-      yPosition += 5;
-    } else if (!isHarvard) {
-      doc.setTextColor(120, 120, 120);
-      doc.text(edu.schoolName, margin, yPosition);
-      yPosition += 5;
+    retries++;
+    if (retries >= maxRetries) {
+      console.warn(`[PDF Generator] Content may not be fully rendered after ${maxRetries} retries`);
     }
-    
-    if (edu.description) {
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(60, 60, 60);
-      const descHeight = addText(edu.description, margin, yPosition, contentWidth, 9);
-      yPosition += descHeight + 2;
-    }
-    yPosition += 4;
-  });
+  }
+
+  let canvas: HTMLCanvasElement;
   
-  return yPosition;
-}
-
-function renderExperience(doc: jsPDF, experiences: ResumeData['experiences'], margin: number, yPosition: number, contentWidth: number, pageWidth: number, primaryRgb: { r: number; g: number; b: number }, addText: Function, isHarvard: boolean, checkNewPage: Function): number {
-  yPosition = renderSectionHeader(doc, 'Experience', margin, pageWidth, yPosition, primaryRgb);
-  
-  experiences.forEach(exp => {
-    checkNewPage(40);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    const titleText = isHarvard ? exp.employer : `${exp.jobTitle}${exp.employer ? ', ' + exp.employer : ''}`;
-    doc.text(titleText, margin, yPosition);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text(`${exp.startDate} - ${exp.isCurrentJob ? 'Present' : exp.endDate}`, pageWidth - margin, yPosition, { align: 'right' });
-    yPosition += 5;
+  try {
+    // Get the actual scroll height after all content is rendered
+    const actualHeight = Math.max(
+      clonedElement.scrollHeight,
+      clonedElement.offsetHeight,
+      tempContainer.scrollHeight
+    );
+    const actualWidth = clonedElement.scrollWidth || clonedElement.offsetWidth;
     
-    if (isHarvard) {
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'italic');
-      doc.text(exp.jobTitle, margin, yPosition);
-      yPosition += 5;
-    }
+    console.log(`[PDF Generator] Capturing element - Width: ${actualWidth}px, Height: ${actualHeight}px`);
     
-    if (exp.location) {
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(120, 120, 120);
-      doc.text(exp.location, margin, yPosition);
-      yPosition += 5;
-    }
+    // Use html2canvas with optimized settings for speed
+    // CRITICAL: Use onclone callback to fix modern color functions BEFORE html2canvas parses CSS
+    canvas = await html2canvas(clonedElement, {
+      scale: 1.2, // Reduced from 1.5/2.0 for faster rendering while maintaining quality
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      width: actualWidth,
+      height: actualHeight,
+      windowWidth: actualWidth,
+      windowHeight: actualHeight,
+      imageTimeout: 0, // Don't wait for images to load (already loaded)
+      removeContainer: true, // Clean up automatically
+      allowTaint: false,
+      foreignObjectRendering: false,
+      onclone: (clonedDoc) => {
+        // Fix modern color functions (oklch, lab, lch, oklab) in the cloned document
+        // html2canvas doesn't support these modern CSS color formats
+        const win = clonedDoc.defaultView || window;
+        
+        // Step 1: Inject a style tag to override CSS custom properties with RGB values
+        // This ensures html2canvas doesn't try to parse oklch/lab values from stylesheets
+        const overrideStyle = clonedDoc.createElement('style');
+        overrideStyle.id = 'html2canvas-color-fix';
+        
+        // Get computed CSS custom properties from :root and convert to RGB
+        const rootStyles = win.getComputedStyle(clonedDoc.documentElement);
+        const cssVarOverrides: string[] = [];
+        
+        // List of CSS custom properties that typically contain colors
+        const colorVarNames = [
+          '--background', '--foreground', '--card', '--card-foreground',
+          '--popover', '--popover-foreground', '--primary', '--primary-foreground',
+          '--secondary', '--secondary-foreground', '--muted', '--muted-foreground',
+          '--accent', '--accent-foreground', '--destructive', '--border', '--input',
+          '--ring', '--chart-1', '--chart-2', '--chart-3', '--chart-4', '--chart-5',
+          '--sidebar', '--sidebar-foreground', '--sidebar-primary', '--sidebar-primary-foreground',
+          '--sidebar-accent', '--sidebar-accent-foreground', '--sidebar-border', '--sidebar-ring'
+        ];
+        
+        colorVarNames.forEach(varName => {
+          try {
+            const value = rootStyles.getPropertyValue(varName).trim();
+            if (value && isModernColorFunction(value)) {
+              const rgbValue = convertToRgb(clonedDoc, value, 'inherit');
+              if (rgbValue !== 'inherit') {
+                cssVarOverrides.push(`${varName}: ${rgbValue} !important;`);
+              }
+            }
+          } catch (e) {
+            // Skip this variable
+          }
+        });
+        
+        if (cssVarOverrides.length > 0) {
+          overrideStyle.textContent = `:root { ${cssVarOverrides.join(' ')} }`;
+          clonedDoc.head.appendChild(overrideStyle);
+        }
+        
+        // Step 2: Process all elements to convert computed styles with modern colors
+        let convertedCount = 0;
+        const allElements = clonedDoc.querySelectorAll('*');
+        allElements.forEach((el: Element) => {
+          if (el instanceof HTMLElement) {
+            const beforeStyles = el.style.cssText;
+            normalizeElementColors(clonedDoc, el);
+            if (el.style.cssText !== beforeStyles) {
+              convertedCount++;
+            }
+          }
+        });
+        
+        // Step 3: Fix root elements explicitly with safe colors
+        if (clonedDoc.documentElement) {
+          clonedDoc.documentElement.style.backgroundColor = '#ffffff';
+          clonedDoc.documentElement.style.color = '#000000';
+        }
+        if (clonedDoc.body) {
+          clonedDoc.body.style.backgroundColor = '#ffffff';
+          clonedDoc.body.style.color = '#000000';
+        }
+        
+        // Step 4: Fix the target element being captured
+        const targetElement = clonedDoc.querySelector('[data-resume-preview]') as HTMLElement;
+        if (targetElement) {
+          targetElement.style.backgroundColor = '#ffffff';
+        }
+        
+        console.log(`[PDF Generator] Applied ${cssVarOverrides.length} CSS variable overrides, converted ${convertedCount} elements`);
+      },
+    });
+
+    // Calculate PDF dimensions (A4: 210mm x 297mm)
+    const imgWidth = 210; // A4 width in mm
+    const pageHeight = 297; // A4 height in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    console.log(`[PDF Generator] Canvas dimensions - Width: ${canvas.width}px, Height: ${canvas.height}px`);
+    console.log(`[PDF Generator] PDF dimensions - Width: ${imgWidth}mm, Height: ${imgHeight.toFixed(2)}mm`);
+
+    // Create PDF
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      compress: true, // Enable compression for faster generation
+    });
+
+    // Convert to JPEG for faster processing (smaller file size)
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
     
-    if (exp.description) {
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(60, 60, 60);
-      const descHeight = addText(exp.description, margin, yPosition, contentWidth, 9);
-      yPosition += descHeight + 2;
+    // Calculate total number of pages needed
+    const totalPages = Math.ceil(imgHeight / pageHeight);
+    
+    console.log(`[PDF Generator] Image height: ${imgHeight.toFixed(2)}mm, Page height: ${pageHeight}mm, Total pages: ${totalPages}`);
+
+    if (totalPages === 0) {
+      throw new Error('No content to generate PDF');
     }
-    yPosition += 4;
-  });
-  
-  return yPosition;
-}
 
-function renderSkills(doc: jsPDF, skills: ResumeData['skills'], margin: number, yPosition: number, contentWidth: number, primaryRgb: { r: number; g: number; b: number }, addText: Function, isHarvard: boolean): number {
-  yPosition = renderSectionHeader(doc, isHarvard ? 'Skills & Interests' : 'Skills', margin, 210, yPosition, primaryRgb);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(60, 60, 60);
-  const skillsText = skills.map(s => s.name + (s.showLevel && s.level ? ` (${s.level})` : '')).join(', ');
-  const skillsHeight = addText(skillsText, margin, yPosition, contentWidth, 10);
-  return yPosition + skillsHeight + 6;
-}
+    // Add each page
+    for (let page = 0; page < totalPages; page++) {
+      if (page > 0) {
+        pdf.addPage();
+      }
+      
+      // Calculate the Y position to show the correct portion of the image
+      // For page 0: position = 0 (shows top of image)
+      // For page 1: position = -297 (shows content from 297mm onwards)
+      // For page 2: position = -594 (shows content from 594mm onwards)
+      const yPosition = -(page * pageHeight);
+      
+      console.log(`[PDF Generator] Adding page ${page + 1}/${totalPages} with Y position: ${yPosition}mm`);
+      
+      pdf.addImage(imgData, 'JPEG', 0, yPosition, imgWidth, imgHeight, undefined, 'FAST');
+    }
 
-function renderLanguages(doc: jsPDF, languages: ResumeData['finalize']['languages'], margin: number, yPosition: number, contentWidth: number, primaryRgb: { r: number; g: number; b: number }, addText: Function): number {
-  yPosition = renderSectionHeader(doc, 'Languages', margin, 210, yPosition, primaryRgb);
-  doc.setFontSize(10);
-  doc.setTextColor(60, 60, 60);
-  const langText = languages.map(l => `${l.name} (${l.proficiency})`).join(', ');
-  const langHeight = addText(langText, margin, yPosition, contentWidth, 10);
-  return yPosition + langHeight + 6;
+    // Save the PDF
+    pdf.save(`${fileName}.pdf`);
+    
+    console.log(`[PDF Generator] Successfully generated ${totalPages}-page PDF: ${fileName}.pdf`);
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    throw error;
+  } finally {
+    // Clean up temp container
+    if (document.body.contains(tempContainer)) {
+      document.body.removeChild(tempContainer);
+    }
+  }
 }
-
-function renderCertifications(doc: jsPDF, certifications: ResumeData['finalize']['certifications'], margin: number, yPosition: number, primaryRgb: { r: number; g: number; b: number }, checkNewPage: Function): number {
-  yPosition = renderSectionHeader(doc, 'Certifications', margin, 210, yPosition, primaryRgb);
-  certifications.forEach(cert => {
-    checkNewPage(20);
-    doc.setFontSize(10);
-    doc.setTextColor(60, 60, 60);
-    doc.text(`${cert.name} - ${cert.issuer} (${cert.date})`, margin, yPosition);
-    yPosition += 5;
-  });
-  return yPosition + 2;
-}
-
-function renderAwards(doc: jsPDF, awards: ResumeData['finalize']['awards'], margin: number, yPosition: number, primaryRgb: { r: number; g: number; b: number }, checkNewPage: Function): number {
-  yPosition = renderSectionHeader(doc, 'Awards & Honors', margin, 210, yPosition, primaryRgb);
-  awards.forEach(award => {
-    checkNewPage(20);
-    doc.setFontSize(10);
-    doc.setTextColor(60, 60, 60);
-    doc.text(`${award.title} - ${award.issuer} (${award.date})`, margin, yPosition);
-    yPosition += 5;
-  });
-  return yPosition + 2;
-}
-
-function renderWebsites(doc: jsPDF, websites: ResumeData['finalize']['websites'], margin: number, yPosition: number, contentWidth: number, primaryRgb: { r: number; g: number; b: number }, addText: Function): number {
-  yPosition = renderSectionHeader(doc, 'Links', margin, 210, yPosition, primaryRgb);
-  doc.setFontSize(10);
-  doc.setTextColor(60, 60, 60);
-  const websiteText = websites.map(w => `${w.label}: ${w.url}`).join(' | ');
-  const webHeight = addText(websiteText, margin, yPosition, contentWidth, 10);
-  return yPosition + webHeight + 6;
-}
-
-function renderReferences(doc: jsPDF, references: ResumeData['finalize']['references'], margin: number, yPosition: number, pageWidth: number, primaryRgb: { r: number; g: number; b: number }, checkNewPage: Function): number {
-  yPosition = renderSectionHeader(doc, 'References', margin, pageWidth, yPosition, primaryRgb);
-  references.forEach(ref => {
-    checkNewPage(25);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text(ref.name, margin, yPosition);
-    yPosition += 5;
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text(`${ref.position}${ref.company ? ', ' + ref.company : ''}`, margin, yPosition);
-    yPosition += 5;
-    doc.text(`${ref.email}${ref.phone ? ' | ' + ref.phone : ''}`, margin, yPosition);
-    yPosition += 7;
-  });
-  return yPosition;
-}
-
-function renderHobbies(doc: jsPDF, hobbies: ResumeData['finalize']['hobbies'], margin: number, yPosition: number, contentWidth: number, primaryRgb: { r: number; g: number; b: number }, addText: Function): number {
-  yPosition = renderSectionHeader(doc, 'Hobbies & Interests', margin, 210, yPosition, primaryRgb);
-  doc.setFontSize(10);
-  doc.setTextColor(60, 60, 60);
-  const hobbiesText = hobbies.map(h => h.name).join(', ');
-  const hobbiesHeight = addText(hobbiesText, margin, yPosition, contentWidth, 10);
-  return yPosition + hobbiesHeight + 6;
-}
-
-function renderCustomSection(doc: jsPDF, section: ResumeData['finalize']['customSections'][0], margin: number, yPosition: number, contentWidth: number, primaryRgb: { r: number; g: number; b: number }, addText: Function): number {
-  yPosition = renderSectionHeader(doc, section.sectionName, margin, 210, yPosition, primaryRgb);
-  doc.setFontSize(10);
-  doc.setTextColor(60, 60, 60);
-  const sectionHeight = addText(section.description, margin, yPosition, contentWidth, 10);
-  return yPosition + sectionHeight + 6;
-}
+ 

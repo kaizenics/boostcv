@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { ResumeData } from '@/lib/types/resume';
 import { resumeTemplates } from '@/lib/resume-templates';
+import { ResumePreview } from '@/components/resume/resume-preview';
 import { Download, FileText, File, ArrowRight } from 'lucide-react';
 import { 
   generatePDF, 
@@ -28,12 +29,13 @@ interface DownloadDialogProps {
   onClose: () => void;
   designOptions?: DesignOptions;
   customFileName?: string;
+  customColor?: string;
   onDownloadComplete?: () => void;
 }
 
 type DownloadFormat = 'pdf' | 'docx';
 
-export function DownloadDialog({ data, isOpen, onClose, designOptions = defaultDesignOptions, customFileName, onDownloadComplete }: DownloadDialogProps) {
+export function DownloadDialog({ data, isOpen, onClose, designOptions = defaultDesignOptions, customFileName, customColor, onDownloadComplete }: DownloadDialogProps) {
   const router = useRouter();
   const [format, setFormat] = useState<DownloadFormat>('pdf');
   const [isDownloading, setIsDownloading] = useState(false);
@@ -52,11 +54,15 @@ export function DownloadDialog({ data, isOpen, onClose, designOptions = defaultD
     
     try {
       if (format === 'pdf') {
+        // Small delay to ensure UI updates before heavy operation
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         await generatePDF({
           data,
           template,
           fileName,
-          designOptions
+          designOptions,
+          customColor
         });
       } else {
         await generateDOCX({
@@ -74,16 +80,55 @@ export function DownloadDialog({ data, isOpen, onClose, designOptions = defaultD
       }
     } catch (error) {
       console.error('Download failed:', error);
+      alert('Failed to generate resume. Please try again.');
     } finally {
       setIsDownloading(false);
     }
   };
 
+  // Pre-render the resume when dialog opens for faster PDF generation
+  useEffect(() => {
+    if (isOpen && format === 'pdf') {
+      // Small delay to ensure dialog is fully rendered first
+      setTimeout(() => {
+        const previewElement = document.querySelector('[data-resume-preview]');
+        if (previewElement) {
+          // Force a layout recalculation to ensure everything is ready
+          void previewElement.getBoundingClientRect();
+        }
+      }, 50);
+    }
+  }, [isOpen, format]);
+
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+    <>
+      {/* Hidden resume preview for PDF generation - pre-rendered with all pages */}
+      {isOpen && format === 'pdf' && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            left: '-10000px', 
+            top: 0, 
+            width: '210mm',
+            height: 'auto',
+            overflow: 'visible',
+            visibility: 'visible'
+          }}
+        >
+          <ResumePreview
+            data={data}
+            designOptions={designOptions}
+            customColor={customColor}
+            showScore={false}
+            renderAllPages={true}
+          />
+        </div>
+      )}
+      
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex justify-center mb-4">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
@@ -160,5 +205,6 @@ export function DownloadDialog({ data, isOpen, onClose, designOptions = defaultD
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }

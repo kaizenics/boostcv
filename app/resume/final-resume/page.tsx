@@ -880,6 +880,7 @@ export default function FinalResumePage() {
         onClose={() => setShowDownloadDialog(false)}
         designOptions={designOptions}
         customFileName={resumeName}
+        customColor={selectedColor}
         onDownloadComplete={handleDownloadComplete}
       />
     </div>
